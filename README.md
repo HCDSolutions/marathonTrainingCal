@@ -5,14 +5,16 @@ A beautiful, interactive single-page application for tracking marathon training 
 ## Features
 
 ### 📅 Interactive Calendar
+
 - Clean, modern monthly calendar view with navigation
 - Today's date highlighted
 - Special styling for the marathon date (Richmond Marathon - Nov 15th)
 - Responsive design for desktop, tablet, and mobile
 
 ### 🏃‍♂️ Comprehensive Workout Tracking
+
 - **VO2 Max** - High intensity interval training
-- **Steady State Run** - Comfortably hard pace runs  
+- **Steady State Run** - Comfortably hard pace runs
 - **Progressive Long Run** - Long runs that get faster
 - **Strides and Drills** - Speed work and form drills
 - **Hill Sprints** - Short, intense uphill efforts
@@ -22,18 +24,21 @@ A beautiful, interactive single-page application for tracking marathon training 
 - **Rest Day** - Recovery days
 
 ### ✅ Progress Tracking
+
 - Mark workouts as complete with visual checkmarks
 - Training progress summary with statistics
 - Completion rate tracking
 - Visual indicators for completed workouts
 
 ### 📊 Automatic Training Plan
+
 - 16-week marathon training plan automatically generated
 - Progressive long run buildup (8-20 miles)
 - Scientifically-based workout distribution
 - Customizable for individual needs
 
 ### 💾 Data Persistence
+
 - All data saved in browser's local storage
 - No backend server required
 - Works completely offline
@@ -76,6 +81,7 @@ marathonTrainingCal/
 ## Browser Compatibility
 
 Works in all modern browsers including:
+
 - Chrome
 - Firefox
 - Safari
