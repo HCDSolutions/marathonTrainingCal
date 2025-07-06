@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marathon Training Calendar</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>Marathon Training Calendar</h1>
+    <div id="calendar"></div>
+    <div id="day-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <span id="close-modal">&times;</span>
+        <h2 id="modal-date"></h2>
+
+        <div class="form-group">
+          <label for="workout-type">Workout Type:</label>
+          <select id="workout-type">
+            <option value="">Select workout type</option>
+            <option value="vo2max">VO2 Max</option>
+            <option value="steadystate">Steady State Run</option>
+            <option value="progressive">Progressive Long Run</option>
+            <option value="strides">Strides and Drills</option>
+            <option value="hillsprints">Hill Sprints</option>
+            <option value="longruns">Long Runs</option>
+            <option value="zone2">Zone 2 Runs</option>
+            <option value="strength">Strength Training</option>
+            <option value="rest">Rest Day</option>
+            <option value="marathon">Marathon Race</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="workout-distance">Distance:</label>
+          <input
+            type="text"
+            id="workout-distance"
+            placeholder="e.g., 5 miles, 8K"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="workout-pace">Pace/Intensity:</label>
+          <input
+            type="text"
+            id="workout-pace"
+            placeholder="e.g., 8:30/mile, moderate"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="workout-notes">Notes:</label>
+          <textarea
+            id="workout-notes"
+            placeholder="Add workout notes, how you felt, weather conditions, etc."
+          ></textarea>
+        </div>
+
+        <div class="button-group">
+          <button id="save-workout" class="btn-primary">Save Workout</button>
+          <button id="mark-complete" class="btn-success">
+            Mark as Complete
+          </button>
+          <button id="delete-workout" class="btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>

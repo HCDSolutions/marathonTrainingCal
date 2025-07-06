@@ -1,0 +1,433 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#calendar {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.calendar-header h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.nav-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.3s ease;
+}
+
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.day-header {
+  padding: 15px;
+  text-align: center;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.calendar-day {
+  min-height: 120px;
+  border: 1px solid #dee2e6;
+  padding: 10px;
+  cursor: pointer;
+  position: relative;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.calendar-day:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-day.other-month {
+  background: #f8f9fa;
+  color: #adb5bd;
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.calendar-day.today:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.calendar-day.marathon-date {
+  background: linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%);
+  color: white;
+  border: 3px solid #ff4500;
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+  animation: marathonGlow 2s ease-in-out infinite alternate;
+}
+
+.calendar-day.marathon-date:hover {
+  background: linear-gradient(135deg, #ff8142 0%, #ff5722 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.6);
+}
+
+.marathon-icon {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 16px;
+  color: white;
+}
+
+@keyframes marathonGlow {
+  from {
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(255, 107, 53, 0.8);
+  }
+}
+
+.day-number {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.workout-info {
+  font-size: 0.85rem;
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+
+.workout-type {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin: 2px 0;
+}
+
+.workout-type.easy {
+  background: #d4edda;
+  color: #155724;
+}
+.workout-type.tempo {
+  background: #fff3cd;
+  color: #856404;
+}
+.workout-type.intervals {
+  background: #f8d7da;
+  color: #721c24;
+}
+.workout-type.long {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+.workout-type.vo2max {
+  background: #f8d7da;
+  color: #721c24;
+}
+.workout-type.steadystate {
+  background: #fff3cd;
+  color: #856404;
+}
+.workout-type.progressive {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+.workout-type.strides {
+  background: #e2e3e5;
+  color: #383d41;
+}
+.workout-type.hillsprints {
+  background: #f5c6cb;
+  color: #721c24;
+}
+.workout-type.longruns {
+  background: #b3d9ff;
+  color: #004085;
+}
+.workout-type.zone2 {
+  background: #d4edda;
+  color: #155724;
+}
+.workout-type.strength {
+  background: #d6d8db;
+  color: #383d41;
+}
+.workout-type.rest {
+  background: #e2e3e5;
+  color: #383d41;
+}
+.workout-type.marathon {
+  background: linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%);
+  color: white;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.completion-status {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #28a745;
+  color: white;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.calendar-day.completed .completion-status {
+  display: flex;
+}
+
+.calendar-day.completed {
+  border: 2px solid #28a745;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+#close-modal {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #adb5bd;
+  transition: color 0.3s ease;
+}
+
+#close-modal:hover {
+  color: #495057;
+}
+
+.modal h2 {
+  margin-bottom: 20px;
+  color: #495057;
+  font-size: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-2px);
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Training Plan Summary */
+.training-summary {
+  background: white;
+  margin: 20px auto;
+  max-width: 1200px;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.summary-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.summary-card p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .calendar-header {
+    padding: 15px;
+  }
+
+  .calendar-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .calendar-day {
+    min-height: 80px;
+    padding: 5px;
+  }
+
+  .modal-content {
+    margin: 10% auto;
+    padding: 20px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+}
