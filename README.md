@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Marathon Training Calendar 🏃‍♂️
 
 A beautiful, interactive single-page application for tracking marathon training progress. Built specifically for the **Richmond Marathon on November 15th, 2025**.
@@ -100,3 +101,6 @@ Works in all modern browsers including:
 **Target Event**: Richmond Marathon - November 15th, 2025 🏁
 
 Good luck with your training! 🏃‍♂️💪
+=======
+# marathonTrainingCal
+>>>>>>> 03ef2c8f6169cf69fb270d4b7f0049e827f6ad11
