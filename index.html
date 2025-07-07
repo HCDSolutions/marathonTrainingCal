@@ -7,15 +7,40 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <nav class="navbar">
+      <ul>
+        <li>
+          <a href="index.html" id="nav-calendar" class="active">Calendar</a>
+        </li>
+        <li><a href="profile.html" id="nav-profile">Profile Information</a></li>
+        <li><a href="nutrition.html" id="nav-nutrition">Nutrition</a></li>
+      </ul>
+      <div class="mode-toggle-container">
+        <span class="mode-label">Mode:</span>
+        <label class="switch">
+          <input type="checkbox" id="mode-toggle" />
+          <span class="slider"></span>
+        </label>
+        <span id="mode-text" class="mode-badge simple">Simple</span>
+        <span
+          id="open-workout-info"
+          class="info-badge info-badge-fixed vertical-badge"
+          title="Show workout types info"
+        >
+          <span class="badge-label">Workout Types</span>
+        </span>
+      </div>
+    </nav>
     <h1>Marathon Training Calendar</h1>
-    <button
-      id="open-workout-info"
-      class="btn-secondary"
-      style="margin: 10px 0 20px 0"
-    >
-      Workout Types Info
-    </button>
     <div id="calendar"></div>
+    <div id="mobile-day-view" style="display: none">
+      <div class="mobile-day-nav">
+        <button id="mobile-prev-day" class="btn-secondary">&#8592;</button>
+        <span id="mobile-day-label"></span>
+        <button id="mobile-next-day" class="btn-secondary">&#8594;</button>
+      </div>
+      <div id="mobile-day-details"></div>
+    </div>
     <div id="day-modal" class="modal" style="display: none">
       <div class="modal-content">
         <span id="close-modal">&times;</span>
@@ -75,7 +100,6 @@
     </div>
     <div id="workout-info-drawer" class="drawer-modal">
       <div class="drawer-content">
-        <span id="close-workout-info" class="drawer-close">&times;</span>
         <h2>Workout Type Descriptions</h2>
         <ul class="workout-type-list">
           <li>
