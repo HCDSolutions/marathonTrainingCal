@@ -10,7 +10,11 @@
     <nav class="navbar">
       <ul>
         <li><a href="index.html" id="nav-calendar">Calendar</a></li>
-        <li><a href="profile.html" id="nav-profile" class="active">Profile Information</a></li>
+        <li>
+          <a href="profile.html" id="nav-profile" class="active"
+            >Profile Information</a
+          >
+        </li>
         <li><a href="nutrition.html" id="nav-nutrition">Nutrition</a></li>
       </ul>
     </nav>
@@ -25,16 +29,37 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="profile-height" id="profile-height-label">Height (in):</label>
-          <input type="number" id="profile-height" min="40" max="250" step="0.1" />
+          <label for="profile-height" id="profile-height-label"
+            >Height (in):</label
+          >
+          <input
+            type="number"
+            id="profile-height"
+            min="40"
+            max="250"
+            step="0.1"
+          />
         </div>
         <div class="form-group">
-          <label for="profile-weight" id="profile-weight-label">Current Weight (lbs):</label>
-          <input type="number" id="profile-weight" min="0" max="500" step="0.1" />
+          <label for="profile-weight" id="profile-weight-label"
+            >Current Weight (lbs):</label
+          >
+          <input
+            type="number"
+            id="profile-weight"
+            min="0"
+            max="500"
+            step="0.1"
+          />
         </div>
         <div class="form-group">
           <label for="profile-bmi">BMI:</label>
-          <input type="text" id="profile-bmi" readonly style="background: #f8f9fa" />
+          <input
+            type="text"
+            id="profile-bmi"
+            readonly
+            style="background: #f8f9fa"
+          />
         </div>
       </form>
       <hr style="margin: 30px 0" />
@@ -43,8 +68,17 @@
         <label for="weight-date">Date:</label>
         <input type="date" id="weight-date" required />
         <label for="weight-value" id="weight-value-label">Weight (lbs):</label>
-        <input type="number" id="weight-value" min="30" max="500" step="0.1" required />
-        <button type="submit" class="btn-primary" style="margin-left: 8px">Add</button>
+        <input
+          type="number"
+          id="weight-value"
+          min="30"
+          max="500"
+          step="0.1"
+          required
+        />
+        <button type="submit" class="btn-primary" style="margin-left: 8px">
+          Add
+        </button>
       </form>
       <table id="weight-history" style="width: 100%; border-collapse: collapse">
         <thead>
@@ -57,5 +91,163 @@
       </table>
     </section>
     <script src="main.js"></script>
+    <script>
+      // BMI and weight tracker logic for profile page
+      document.addEventListener("DOMContentLoaded", function () {
+        const heightInput = document.getElementById("profile-height");
+        const weightInput = document.getElementById("profile-weight");
+        const bmiInput = document.getElementById("profile-bmi");
+        const unitToggle = document.getElementById("unit-toggle");
+        const heightLabel = document.getElementById("profile-height-label");
+        const weightLabel = document.getElementById("profile-weight-label");
+        let bmiCategoryLabel = document.getElementById("bmi-category-label");
+        if (!bmiCategoryLabel && bmiInput) {
+          bmiCategoryLabel = document.createElement("div");
+          bmiCategoryLabel.id = "bmi-category-label";
+          bmiInput.parentElement.appendChild(bmiCategoryLabel);
+        }
+        let currentUnit = localStorage.getItem("profile-unit") || "imperial";
+        if (unitToggle) unitToggle.value = currentUnit;
+        function getBMICategory(bmi) {
+          if (bmi < 18.5) return "Below recommended";
+          if (bmi < 25) return "Recommended range";
+          if (bmi < 30) return "Above recommended";
+          return "Well above recommended";
+        }
+        function toMetric(h, w) {
+          return [h * 2.54, w * 0.453592];
+        }
+        function toImperial(h, w) {
+          return [h / 2.54, w / 0.453592];
+        }
+        function updateLabels(unit) {
+          if (heightLabel)
+            heightLabel.textContent =
+              unit === "metric" ? "Height (cm):" : "Height (in):";
+          if (weightLabel)
+            weightLabel.textContent =
+              unit === "metric"
+                ? "Current Weight (kg):"
+                : "Current Weight (lbs):";
+          const weightValueLabel =
+            document.getElementById("weight-value-label");
+          const weightHistoryHeader = document.getElementById(
+            "weight-history-header"
+          );
+          if (weightValueLabel)
+            weightValueLabel.textContent = `Weight (${
+              unit === "metric" ? "kg" : "lbs"
+            }):`;
+          if (weightHistoryHeader)
+            weightHistoryHeader.textContent = `Weight (${
+              unit === "metric" ? "kg" : "lbs"
+            })`;
+        }
+        function updateBMI() {
+          let h = parseFloat(heightInput.value);
+          let w = parseFloat(weightInput.value);
+          if (h > 0 && w > 0) {
+            if (currentUnit === "imperial") {
+              [h, w] = toMetric(h, w);
+            }
+            const bmi = w / (h / 100) ** 2;
+            bmiInput.value = bmi.toFixed(1);
+            if (bmiCategoryLabel) {
+              bmiCategoryLabel.textContent = `(${getBMICategory(bmi)})`;
+              bmiCategoryLabel.style.fontSize = "0.95em";
+              bmiCategoryLabel.style.color = "#764ba2";
+              bmiCategoryLabel.style.marginTop = "4px";
+            }
+          } else {
+            bmiInput.value = "";
+            if (bmiCategoryLabel) bmiCategoryLabel.textContent = "";
+          }
+        }
+        function convertProfileFields(newUnit) {
+          let h = parseFloat(heightInput.value);
+          let w = parseFloat(weightInput.value);
+          if (h > 0 && w > 0) {
+            if (newUnit === "metric" && currentUnit === "imperial") {
+              [h, w] = toMetric(h, w);
+            } else if (newUnit === "imperial" && currentUnit === "metric") {
+              [h, w] = toImperial(h, w);
+            }
+            heightInput.value = h ? h.toFixed(1) : "";
+            weightInput.value = w ? w.toFixed(1) : "";
+          }
+        }
+        if (unitToggle && heightInput && weightInput && bmiInput) {
+          unitToggle.onchange = function () {
+            const newUnit = unitToggle.value;
+            if (newUnit !== currentUnit) {
+              convertProfileFields(newUnit);
+              updateLabels(newUnit);
+              currentUnit = newUnit;
+              localStorage.setItem("profile-unit", currentUnit);
+              updateBMI();
+              renderWeightHistory();
+            }
+          };
+          updateLabels(currentUnit);
+        }
+        if (heightInput && weightInput && bmiInput) {
+          heightInput.oninput = updateBMI;
+          weightInput.oninput = updateBMI;
+        }
+        // Weight tracker
+        const weightForm = document.getElementById("weight-form");
+        const weightDate = document.getElementById("weight-date");
+        const weightValue = document.getElementById("weight-value");
+        const weightHistory = document
+          .getElementById("weight-history")
+          .querySelector("tbody");
+        let weights = JSON.parse(
+          localStorage.getItem("weight-history") || "[]"
+        );
+        function renderWeightHistory() {
+          weightHistory.innerHTML = "";
+          weights.sort((a, b) => new Date(b.date) - new Date(a.date));
+          for (const entry of weights) {
+            let displayWeight = entry.weight;
+            if (currentUnit === "imperial" && entry.unit === "metric") {
+              displayWeight = (entry.weight / 0.453592).toFixed(1);
+            } else if (currentUnit === "metric" && entry.unit === "imperial") {
+              displayWeight = (entry.weight * 0.453592).toFixed(1);
+            }
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${entry.date}</td><td>${displayWeight}</td>`;
+            weightHistory.appendChild(tr);
+          }
+          if (weights.length && weightInput) {
+            let latest = weights[0];
+            let w = latest.weight;
+            if (currentUnit === "imperial" && latest.unit === "metric") {
+              w = (w / 0.453592).toFixed(1);
+            } else if (currentUnit === "metric" && latest.unit === "imperial") {
+              w = (w * 0.453592).toFixed(1);
+            }
+            weightInput.value = w;
+            updateBMI();
+          }
+        }
+        if (weightForm && weightDate && weightValue) {
+          weightForm.onsubmit = (e) => {
+            e.preventDefault();
+            const date = weightDate.value;
+            let weight = parseFloat(weightValue.value);
+            if (date && weight > 0) {
+              weights = weights.filter((w) => w.date !== date);
+              weights.push({ date, weight, unit: currentUnit });
+              localStorage.setItem("weight-history", JSON.stringify(weights));
+              renderWeightHistory();
+              weightForm.reset();
+            }
+          };
+          renderWeightHistory();
+        }
+        updateLabels(currentUnit);
+        updateBMI();
+      });
+    </script>
   </body>
 </html>

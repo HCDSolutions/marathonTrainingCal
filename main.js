@@ -84,20 +84,28 @@ class MarathonTrainingCalendar {
     const navCalendar = document.getElementById("nav-calendar");
     const navProfile = document.getElementById("nav-profile");
     const navNutrition = document.getElementById("nav-nutrition");
-    if (navCalendar && navProfile && navNutrition) {
+    // Only use SPA navigation if all three sections exist (old single-page mode)
+    if (
+      calendarSection &&
+      profileSection &&
+      nutritionSection &&
+      navCalendar &&
+      navProfile &&
+      navNutrition
+    ) {
       navCalendar.onclick = (e) => {
         e.preventDefault();
         calendarSection.scrollIntoView({ behavior: "smooth" });
-        if (profileSection) profileSection.style.display = "none";
-        if (nutritionSection) nutritionSection.style.display = "none";
+        profileSection.style.display = "none";
+        nutritionSection.style.display = "none";
         navCalendar.classList.add("active");
         navProfile.classList.remove("active");
         navNutrition.classList.remove("active");
       };
       navProfile.onclick = (e) => {
         e.preventDefault();
-        if (profileSection) profileSection.style.display = "block";
-        if (nutritionSection) nutritionSection.style.display = "none";
+        profileSection.style.display = "block";
+        nutritionSection.style.display = "none";
         window.scrollTo({
           top: profileSection.offsetTop - 60,
           behavior: "smooth",
@@ -108,8 +116,8 @@ class MarathonTrainingCalendar {
       };
       navNutrition.onclick = (e) => {
         e.preventDefault();
-        if (profileSection) profileSection.style.display = "none";
-        if (nutritionSection) nutritionSection.style.display = "block";
+        profileSection.style.display = "none";
+        nutritionSection.style.display = "block";
         window.scrollTo({
           top: nutritionSection.offsetTop - 60,
           behavior: "smooth",
@@ -119,6 +127,7 @@ class MarathonTrainingCalendar {
         navNutrition.classList.add("active");
       };
     }
+    // Otherwise, do nothing: links work as normal
   }
 
   setupModeToggle() {
@@ -244,7 +253,9 @@ class MarathonTrainingCalendar {
       updateDropdown(isSimple);
       updateDrawer(isSimple);
       modeText.textContent = isSimple ? "Simple" : "Complex";
-      modeText.className = isSimple ? "mode-badge simple" : "mode-badge complex";
+      modeText.className = isSimple
+        ? "mode-badge simple"
+        : "mode-badge complex";
     };
     // Info badge opens/closes drawer (no caret logic)
     if (infoBadge && drawer) {
@@ -265,8 +276,8 @@ class MarathonTrainingCalendar {
   setupMobileDayView() {
     this.mobileDay = new Date();
     this.renderMobileDayView();
-    const prevBtn = document.getElementById('mobile-prev-day');
-    const nextBtn = document.getElementById('mobile-next-day');
+    const prevBtn = document.getElementById("mobile-prev-day");
+    const nextBtn = document.getElementById("mobile-next-day");
     if (prevBtn && nextBtn) {
       prevBtn.onclick = () => {
         this.mobileDay.setDate(this.mobileDay.getDate() - 1);
@@ -281,27 +292,27 @@ class MarathonTrainingCalendar {
 
   setupProfileInfo() {
     // BMI calculation
-    const heightInput = document.getElementById('profile-height');
-    const weightInput = document.getElementById('profile-weight');
-    const bmiInput = document.getElementById('profile-bmi');
-    const unitToggle = document.getElementById('unit-toggle');
-    const heightLabel = document.getElementById('profile-height-label');
-    const weightLabel = document.getElementById('profile-weight-label');
+    const heightInput = document.getElementById("profile-height");
+    const weightInput = document.getElementById("profile-weight");
+    const bmiInput = document.getElementById("profile-bmi");
+    const unitToggle = document.getElementById("unit-toggle");
+    const heightLabel = document.getElementById("profile-height-label");
+    const weightLabel = document.getElementById("profile-weight-label");
     // Show BMI category
-    let bmiCategoryLabel = document.getElementById('bmi-category-label');
+    let bmiCategoryLabel = document.getElementById("bmi-category-label");
     if (!bmiCategoryLabel && bmiInput) {
-      bmiCategoryLabel = document.createElement('div');
-      bmiCategoryLabel.id = 'bmi-category-label';
+      bmiCategoryLabel = document.createElement("div");
+      bmiCategoryLabel.id = "bmi-category-label";
       bmiInput.parentElement.appendChild(bmiCategoryLabel);
     }
     // Unit state
-    let currentUnit = localStorage.getItem('profile-unit') || 'imperial';
+    let currentUnit = localStorage.getItem("profile-unit") || "imperial";
     if (unitToggle) unitToggle.value = currentUnit;
     function getBMICategory(bmi) {
-      if (bmi < 18.5) return 'Underweight';
-      if (bmi < 25) return 'Normal weight';
-      if (bmi < 30) return 'Overweight';
-      return 'Obese';
+      if (bmi < 18.5) return "Underweight";
+      if (bmi < 25) return "Normal weight";
+      if (bmi < 30) return "Overweight";
+      return "Obese";
     }
     function toMetric(h, w) {
       // h: inches -> cm, w: lbs -> kg
@@ -312,33 +323,45 @@ class MarathonTrainingCalendar {
       return [h / 2.54, w / 0.453592];
     }
     function updateLabels(unit) {
-      if (heightLabel) heightLabel.textContent = unit === 'metric' ? 'Height (cm):' : 'Height (in):';
-      if (weightLabel) weightLabel.textContent = unit === 'metric' ? 'Current Weight (kg):' : 'Current Weight (lbs):';
+      if (heightLabel)
+        heightLabel.textContent =
+          unit === "metric" ? "Height (cm):" : "Height (in):";
+      if (weightLabel)
+        weightLabel.textContent =
+          unit === "metric" ? "Current Weight (kg):" : "Current Weight (lbs):";
       // Weight tracker labels
-      const weightValueLabel = document.getElementById('weight-value-label');
-      const weightHistoryHeader = document.getElementById('weight-history-header');
-      if (weightValueLabel) weightValueLabel.textContent = `Weight (${unit === 'metric' ? 'kg' : 'lbs'}):`;
-      if (weightHistoryHeader) weightHistoryHeader.textContent = `Weight (${unit === 'metric' ? 'kg' : 'lbs'})`;
+      const weightValueLabel = document.getElementById("weight-value-label");
+      const weightHistoryHeader = document.getElementById(
+        "weight-history-header"
+      );
+      if (weightValueLabel)
+        weightValueLabel.textContent = `Weight (${
+          unit === "metric" ? "kg" : "lbs"
+        }):`;
+      if (weightHistoryHeader)
+        weightHistoryHeader.textContent = `Weight (${
+          unit === "metric" ? "kg" : "lbs"
+        })`;
     }
     function updateBMI() {
       let h = parseFloat(heightInput.value);
       let w = parseFloat(weightInput.value);
       if (h > 0 && w > 0) {
         // Convert to metric for calculation if needed
-        if (currentUnit === 'imperial') {
+        if (currentUnit === "imperial") {
           [h, w] = toMetric(h, w);
         }
-        const bmi = w / ((h / 100) ** 2);
+        const bmi = w / (h / 100) ** 2;
         bmiInput.value = bmi.toFixed(1);
         if (bmiCategoryLabel) {
           bmiCategoryLabel.textContent = `(${getBMICategory(bmi)})`;
-          bmiCategoryLabel.style.fontSize = '0.95em';
-          bmiCategoryLabel.style.color = '#764ba2';
-          bmiCategoryLabel.style.marginTop = '4px';
+          bmiCategoryLabel.style.fontSize = "0.95em";
+          bmiCategoryLabel.style.color = "#764ba2";
+          bmiCategoryLabel.style.marginTop = "4px";
         }
       } else {
-        bmiInput.value = '';
-        if (bmiCategoryLabel) bmiCategoryLabel.textContent = '';
+        bmiInput.value = "";
+        if (bmiCategoryLabel) bmiCategoryLabel.textContent = "";
       }
     }
     // Convert profile fields on unit change
@@ -346,13 +369,13 @@ class MarathonTrainingCalendar {
       let h = parseFloat(heightInput.value);
       let w = parseFloat(weightInput.value);
       if (h > 0 && w > 0) {
-        if (newUnit === 'metric' && currentUnit === 'imperial') {
+        if (newUnit === "metric" && currentUnit === "imperial") {
           [h, w] = toMetric(h, w);
-        } else if (newUnit === 'imperial' && currentUnit === 'metric') {
+        } else if (newUnit === "imperial" && currentUnit === "metric") {
           [h, w] = toImperial(h, w);
         }
-        heightInput.value = h ? h.toFixed(1) : '';
-        weightInput.value = w ? w.toFixed(1) : '';
+        heightInput.value = h ? h.toFixed(1) : "";
+        weightInput.value = w ? w.toFixed(1) : "";
       }
     }
     if (unitToggle && heightInput && weightInput && bmiInput) {
@@ -362,7 +385,7 @@ class MarathonTrainingCalendar {
           convertProfileFields(newUnit);
           updateLabels(newUnit);
           currentUnit = newUnit;
-          localStorage.setItem('profile-unit', currentUnit);
+          localStorage.setItem("profile-unit", currentUnit);
           updateBMI();
           // Also update weight tracker table and form
           renderWeightHistory();
@@ -375,23 +398,25 @@ class MarathonTrainingCalendar {
       weightInput.oninput = updateBMI;
     }
     // Weekly weight tracker
-    const weightForm = document.getElementById('weight-form');
-    const weightDate = document.getElementById('weight-date');
-    const weightValue = document.getElementById('weight-value');
-    const weightHistory = document.getElementById('weight-history').querySelector('tbody');
+    const weightForm = document.getElementById("weight-form");
+    const weightDate = document.getElementById("weight-date");
+    const weightValue = document.getElementById("weight-value");
+    const weightHistory = document
+      .getElementById("weight-history")
+      .querySelector("tbody");
     // Load from localStorage
-    let weights = JSON.parse(localStorage.getItem('weight-history') || '[]');
+    let weights = JSON.parse(localStorage.getItem("weight-history") || "[]");
     function renderWeightHistory() {
-      weightHistory.innerHTML = '';
+      weightHistory.innerHTML = "";
       weights.sort((a, b) => new Date(b.date) - new Date(a.date));
       for (const entry of weights) {
         let displayWeight = entry.weight;
-        if (currentUnit === 'imperial' && entry.unit === 'metric') {
+        if (currentUnit === "imperial" && entry.unit === "metric") {
           displayWeight = (entry.weight / 0.453592).toFixed(1);
-        } else if (currentUnit === 'metric' && entry.unit === 'imperial') {
+        } else if (currentUnit === "metric" && entry.unit === "imperial") {
           displayWeight = (entry.weight * 0.453592).toFixed(1);
         }
-        const tr = document.createElement('tr');
+        const tr = document.createElement("tr");
         tr.innerHTML = `<td>${entry.date}</td><td>${displayWeight}</td>`;
         weightHistory.appendChild(tr);
       }
@@ -399,9 +424,9 @@ class MarathonTrainingCalendar {
       if (weights.length && weightInput) {
         let latest = weights[0];
         let w = latest.weight;
-        if (currentUnit === 'imperial' && latest.unit === 'metric') {
+        if (currentUnit === "imperial" && latest.unit === "metric") {
           w = (w / 0.453592).toFixed(1);
-        } else if (currentUnit === 'metric' && latest.unit === 'imperial') {
+        } else if (currentUnit === "metric" && latest.unit === "imperial") {
           w = (w * 0.453592).toFixed(1);
         }
         weightInput.value = w;
@@ -416,9 +441,9 @@ class MarathonTrainingCalendar {
         if (date && weight > 0) {
           // Store with current unit
           // Remove existing entry for this date
-          weights = weights.filter(w => w.date !== date);
+          weights = weights.filter((w) => w.date !== date);
           weights.push({ date, weight, unit: currentUnit });
-          localStorage.setItem('weight-history', JSON.stringify(weights));
+          localStorage.setItem("weight-history", JSON.stringify(weights));
           renderWeightHistory();
           weightForm.reset();
         }
@@ -431,30 +456,47 @@ class MarathonTrainingCalendar {
   }
 
   renderMobileDayView() {
-    const label = document.getElementById('mobile-day-label');
-    const details = document.getElementById('mobile-day-details');
+    const label = document.getElementById("mobile-day-label");
+    const details = document.getElementById("mobile-day-details");
     if (!label || !details) return;
     const d = this.mobileDay;
-    label.textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    label.textContent = d.toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
     const dateKey = this.getDateKey(d);
     const workout = this.workouts[dateKey];
     if (workout) {
-      details.innerHTML = `<b>Workout:</b> ${this.getWorkoutLabel(workout.type)}<br>
-        <b>Distance:</b> ${workout.distance || '-'}<br>
-        <b>Pace:</b> ${workout.pace || '-'}<br>
-        <b>Notes:</b> ${workout.notes || '-'}<br>`;
+      details.innerHTML = `<b>Workout:</b> ${this.getWorkoutLabel(
+        workout.type
+      )}<br>
+        <b>Distance:</b> ${workout.distance || "-"}<br>
+        <b>Pace:</b> ${workout.pace || "-"}<br>
+        <b>Notes:</b> ${workout.notes || "-"}<br>`;
     } else {
-      details.innerHTML = '<i>No workout assigned for this day.</i>';
+      details.innerHTML = "<i>No workout assigned for this day.</i>";
     }
   }
 
   getWorkoutLabel(type) {
     // Map type to label for both modes
     const map = {
-      hard: 'Hard Run', tempo: 'Tempo Run', easy: 'Easy Run', sprints: 'Sprints',
-      vo2max: 'VO2 Max', steadystate: 'Steady State Run', progressive: 'Progressive Long Run',
-      strides: 'Strides and Drills', hillsprints: 'Hill Sprints', longruns: 'Long Runs',
-      zone2: 'Zone 2 Runs', strength: 'Strength Training', rest: 'Rest Day', marathon: 'Marathon Race'
+      hard: "Hard Run",
+      tempo: "Tempo Run",
+      easy: "Easy Run",
+      sprints: "Sprints",
+      vo2max: "VO2 Max",
+      steadystate: "Steady State Run",
+      progressive: "Progressive Long Run",
+      strides: "Strides and Drills",
+      hillsprints: "Hill Sprints",
+      longruns: "Long Runs",
+      zone2: "Zone 2 Runs",
+      strength: "Strength Training",
+      rest: "Rest Day",
+      marathon: "Marathon Race",
     };
     return map[type] || type;
   }
