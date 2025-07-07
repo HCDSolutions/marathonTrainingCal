@@ -859,3 +859,50 @@ class MarathonTrainingCalendar {
 document.addEventListener("DOMContentLoaded", () => {
   new MarathonTrainingCalendar();
 });
+document.addEventListener('DOMContentLoaded', function () {
+  const emailInput = document.getElementById('auth-email');
+  const passInput = document.getElementById('auth-password');
+  const loginBtn = document.getElementById('login-btn');
+  const signupBtn = document.getElementById('signup-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const authMsg = document.getElementById('auth-message');
+  const profileSection = document.getElementById('profile');
+
+  function showProfile(show) {
+    profileSection.style.display = show ? '' : 'none';
+  }
+
+  loginBtn.onclick = async () => {
+    try {
+      await auth.signInWithEmailAndPassword(emailInput.value, passInput.value);
+      authMsg.textContent = 'Logged in!';
+    } catch (e) {
+      authMsg.textContent = e.message;
+    }
+  };
+  signupBtn.onclick = async () => {
+    try {
+      await auth.createUserWithEmailAndPassword(emailInput.value, passInput.value);
+      authMsg.textContent = 'Account created!';
+    } catch (e) {
+      authMsg.textContent = e.message;
+    }
+  };
+  logoutBtn.onclick = async () => {
+    await auth.signOut();
+    authMsg.textContent = 'Logged out!';
+  };
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      logoutBtn.style.display = '';
+      loginBtn.style.display = signupBtn.style.display = 'none';
+      showProfile(true);
+      // Load user data here
+    } else {
+      logoutBtn.style.display = 'none';
+      loginBtn.style.display = signupBtn.style.display = '';
+      showProfile(false);
+    }
+  });
+});

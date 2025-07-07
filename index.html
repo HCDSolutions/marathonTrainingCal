@@ -5,9 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Marathon Training Calendar</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Firebase App (core) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <!-- Auth and Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script>
+      // Replace with your Firebase config
+      const firebaseConfig = {
+        apiKey: "AIzaSyDQJfjQdYgsfuIXi09DN_M9j3QZW1Yh9_k",
+        authDomain: "training-plan-6a049.firebaseapp.com",
+        projectId: "training-plan-6a049",
+        // ...other config
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+    </script>
   </head>
   <body>
     <nav class="navbar">
+      <div id="auth-section" style="margin: 30px 0">
+        <input type="email" id="auth-email" placeholder="Email" />
+        <input type="password" id="auth-password" placeholder="Password" />
+        <button id="login-btn">Login</button>
+        <button id="signup-btn">Sign Up</button>
+        <button id="logout-btn" style="display: none">Logout</button>
+        <div id="auth-message"></div>
+      </div>
       <ul>
         <li>
           <a href="index.html" id="nav-calendar" class="active">Calendar</a>
