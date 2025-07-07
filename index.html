@@ -11,13 +11,17 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
-      // Replace with your Firebase config
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
       const firebaseConfig = {
         apiKey: "AIzaSyDQJfjQdYgsfuIXi09DN_M9j3QZW1Yh9_k",
         authDomain: "training-plan-6a049.firebaseapp.com",
         projectId: "training-plan-6a049",
-        // ...other config
+        storageBucket: "training-plan-6a049.firebasestorage.app",
+        messagingSenderId: "1091941787317",
+        appId: "1:1091941787317:web:18090eac2af0e526d940fc",
+        measurementId: "G-16XQDD1GRT",
       };
+      // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
       const db = firebase.firestore();

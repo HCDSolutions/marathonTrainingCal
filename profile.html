@@ -90,6 +90,22 @@
         <tbody></tbody>
       </table>
     </section>
+    <!-- Firebase SDKs and config (replace with your config) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script>
+      // Replace with your Firebase config
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        // ...other config
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+    </script>
     <script src="main.js"></script>
     <script>
       // BMI and weight tracker logic for profile page
@@ -247,6 +263,112 @@
         }
         updateLabels(currentUnit);
         updateBMI();
+        // --- Firebase Auth UI logic ---
+        const emailInput = document.getElementById('auth-email');
+        const passInput = document.getElementById('auth-password');
+        const loginBtn = document.getElementById('login-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const authMsg = document.getElementById('auth-message');
+        const profileSection = document.getElementById('profile');
+        function showProfile(show) {
+          profileSection.style.display = show ? '' : 'none';
+        }
+        loginBtn.onclick = async () => {
+          try {
+            await auth.signInWithEmailAndPassword(emailInput.value, passInput.value);
+            authMsg.textContent = 'Logged in!';
+          } catch (e) {
+            authMsg.textContent = e.message;
+          }
+        };
+        signupBtn.onclick = async () => {
+          try {
+            await auth.createUserWithEmailAndPassword(emailInput.value, passInput.value);
+            authMsg.textContent = 'Account created!';
+          } catch (e) {
+            authMsg.textContent = e.message;
+          }
+        };
+        logoutBtn.onclick = async () => {
+          await auth.signOut();
+          authMsg.textContent = 'Logged out!';
+        };
+        // --- Firestore save/load helpers ---
+        async function saveProfileData(profile) {
+          const user = auth.currentUser;
+          if (!user) return;
+          await db.collection('users').doc(user.uid).set({ profile }, { merge: true });
+        }
+        async function loadProfileData() {
+          const user = auth.currentUser;
+          if (!user) return null;
+          const doc = await db.collection('users').doc(user.uid).get();
+          return doc.exists ? doc.data().profile : null;
+        }
+        async function saveWeightHistory(weightHistory) {
+          const user = auth.currentUser;
+          if (!user) return;
+          await db.collection('users').doc(user.uid).set({ weightHistory }, { merge: true });
+        }
+        async function loadWeightHistory() {
+          const user = auth.currentUser;
+          if (!user) return [];
+          const doc = await db.collection('users').doc(user.uid).get();
+          return doc.exists && doc.data().weightHistory ? doc.data().weightHistory : [];
+        }
+        // --- Update UI and sync with Firestore on auth state ---
+        auth.onAuthStateChanged(async user => {
+          if (user) {
+            logoutBtn.style.display = '';
+            loginBtn.style.display = signupBtn.style.display = 'none';
+            showProfile(true);
+            // Load profile and weight history from Firestore
+            const profile = await loadProfileData();
+            if (profile) {
+              if (unitToggle) unitToggle.value = profile.unit || 'imperial';
+              if (heightInput) heightInput.value = profile.height || '';
+              if (weightInput) weightInput.value = profile.weight || '';
+              currentUnit = profile.unit || 'imperial';
+              updateLabels(currentUnit);
+              updateBMI();
+            }
+            weights = await loadWeightHistory();
+            renderWeightHistory();
+          } else {
+            logoutBtn.style.display = 'none';
+            loginBtn.style.display = signupBtn.style.display = '';
+            showProfile(false);
+          }
+        });
+        // --- Save profile to Firestore on change ---
+        function saveProfileToFirestore() {
+          saveProfileData({
+            height: heightInput.value,
+            weight: weightInput.value,
+            unit: currentUnit
+          });
+        }
+        if (heightInput && weightInput && unitToggle) {
+          heightInput.addEventListener('change', saveProfileToFirestore);
+          weightInput.addEventListener('change', saveProfileToFirestore);
+          unitToggle.addEventListener('change', saveProfileToFirestore);
+        }
+        // --- Save weight history to Firestore on add ---
+        if (weightForm && weightDate && weightValue) {
+          weightForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const date = weightDate.value;
+            let weight = parseFloat(weightValue.value);
+            if (date && weight > 0) {
+              weights = weights.filter((w) => w.date !== date);
+              weights.push({ date, weight, unit: currentUnit });
+              await saveWeightHistory(weights);
+              renderWeightHistory();
+              weightForm.reset();
+            }
+          };
+        }
       });
     </script>
   </body>
