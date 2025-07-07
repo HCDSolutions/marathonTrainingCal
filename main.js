@@ -16,6 +16,7 @@ class MarathonTrainingCalendar {
     this.renderCalendar();
     this.setupEventListeners();
     this.renderTrainingSummary();
+    this.setupWorkoutInfoDrawer();
   }
 
   setupEventListeners() {
@@ -53,6 +54,23 @@ class MarathonTrainingCalendar {
         this.closeModal();
       }
     });
+  }
+
+  setupWorkoutInfoDrawer() {
+    const openBtn = document.getElementById("open-workout-info");
+    const drawer = document.getElementById("workout-info-drawer");
+    const closeBtn = document.getElementById("close-workout-info");
+    if (openBtn && drawer && closeBtn) {
+      openBtn.onclick = () => {
+        drawer.classList.add("open");
+      };
+      closeBtn.onclick = () => {
+        drawer.classList.remove("open");
+      };
+      drawer.onclick = (e) => {
+        if (e.target === drawer) drawer.classList.remove("open");
+      };
+    }
   }
 
   renderCalendar() {
@@ -267,39 +285,44 @@ class MarathonTrainingCalendar {
   }
 
   generateTrainingPlan() {
-    // Generate a 16-week marathon training plan starting from today
-    const startDate = new Date();
-    const weekPattern = [
-      { type: "zone2", distance: "3-4 miles" },
-      { type: "steadystate", distance: "4-5 miles" },
-      { type: "zone2", distance: "3-4 miles" },
-      { type: "vo2max", distance: "5-6 miles" },
-      { type: "strides", distance: "3-4 miles" },
-      { type: "rest", distance: "Rest day" },
-      { type: "longruns", distance: "6-20 miles" },
+    // Assign a different workout type to each day, with Sunday as rest day, up to the marathon date
+    const workoutTypes = [
+      "vo2max",
+      "steadystate",
+      "progressive",
+      "strides",
+      "hillsprints",
+      "longruns",
+      "zone2",
+      "strength",
     ];
-
-    for (let week = 0; week < 16; week++) {
-      for (let day = 0; day < 7; day++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(startDate.getDate() + week * 7 + day);
-        const dateKey = this.getDateKey(currentDate);
-
-        // Don't overwrite existing workouts
-        if (!this.workouts[dateKey]) {
-          const workout = { ...weekPattern[day] };
-
-          // Adjust long run distance based on week
-          if (workout.type === "longruns") {
-            const longRunDistance = Math.min(8 + week, 20);
-            workout.distance = `${longRunDistance} miles`;
-          }
-
-          this.workouts[dateKey] = workout;
-        }
+    const start = new Date();
+    const end = new Date(this.marathonDate);
+    let d = new Date(start);
+    let typeIdx = 0;
+    while (d <= end) {
+      const dateKey = this.getDateKey(d);
+      // Sunday is rest day
+      if (d.getDay() === 0) {
+        this.workouts[dateKey] = {
+          type: "rest",
+          distance: "",
+          pace: "",
+          notes: "Rest day",
+        };
+      } else if (dateKey !== this.getDateKey(this.marathonDate)) {
+        // Assign next workout type, skip marathon day
+        const type = workoutTypes[typeIdx % workoutTypes.length];
+        this.workouts[dateKey] = {
+          type,
+          distance: "",
+          pace: "",
+          notes: "",
+        };
+        typeIdx++;
       }
+      d.setDate(d.getDate() + 1);
     }
-
     // Set the marathon day workout
     const marathonDateKey = this.getDateKey(this.marathonDate);
     this.workouts[marathonDateKey] = {
@@ -309,7 +332,6 @@ class MarathonTrainingCalendar {
       notes:
         "🏃‍♂️ RICHMOND MARATHON DAY! Good luck and have fun! Remember to pace yourself and enjoy the experience.",
     };
-
     this.saveWorkouts();
   }
 

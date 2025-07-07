@@ -8,6 +8,13 @@
   </head>
   <body>
     <h1>Marathon Training Calendar</h1>
+    <button
+      id="open-workout-info"
+      class="btn-secondary"
+      style="margin: 10px 0 20px 0"
+    >
+      Workout Types Info
+    </button>
     <div id="calendar"></div>
     <div id="day-modal" class="modal" style="display: none">
       <div class="modal-content">
@@ -64,6 +71,52 @@
           </button>
           <button id="delete-workout" class="btn-danger">Delete</button>
         </div>
+      </div>
+    </div>
+    <div id="workout-info-drawer" class="drawer-modal">
+      <div class="drawer-content">
+        <span id="close-workout-info" class="drawer-close">&times;</span>
+        <h2>Workout Type Descriptions</h2>
+        <ul class="workout-type-list">
+          <li>
+            <b>VO2 Max:</b> Short, high-intensity intervals to improve aerobic
+            capacity.
+          </li>
+          <li>
+            <b>Steady State Run:</b> Sustained, comfortably hard pace to build
+            endurance and efficiency.
+          </li>
+          <li>
+            <b>Progressive Long Run:</b> Long run that gradually increases in
+            pace, finishing strong.
+          </li>
+          <li>
+            <b>Strides and Drills:</b> Short bursts and technique drills to
+            improve speed and running form.
+          </li>
+          <li>
+            <b>Hill Sprints:</b> Short, powerful sprints up a hill to build
+            strength and power.
+          </li>
+          <li>
+            <b>Long Runs:</b> Weekly long-distance runs to build aerobic base
+            and stamina.
+          </li>
+          <li>
+            <b>Zone 2 Runs:</b> Easy, conversational pace runs for aerobic
+            development and recovery.
+          </li>
+          <li>
+            <b>Strength Training:</b> Gym or bodyweight exercises to improve
+            overall strength and injury resistance.
+          </li>
+          <li>
+            <b>Rest Day:</b> No running; focus on recovery and adaptation.
+          </li>
+          <li>
+            <b>Marathon Race:</b> The big day! 26.2 miles at your best effort.
+          </li>
+        </ul>
       </div>
     </div>
     <script src="main.js"></script>
