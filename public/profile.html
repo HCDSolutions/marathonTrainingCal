@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile Information - Marathon Training Calendar</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <ul>
+        <li><a href="index.html" id="nav-calendar">Calendar</a></li>
+        <li>
+          <a href="profile.html" id="nav-profile" class="active"
+            >Profile Information</a
+          >
+        </li>
+        <li><a href="nutrition.html" id="nav-nutrition">Nutrition</a></li>
+      </ul>
+    </nav>
+    <section id="profile" style="margin: 40px auto; max-width: 600px">
+      <h2>Profile Information</h2>
+      <form id="profile-form" autocomplete="off">
+        <div class="form-group">
+          <label for="unit-toggle">Units:</label>
+          <select id="unit-toggle">
+            <option value="imperial">Imperial (in, lbs)</option>
+            <option value="metric">Metric (cm, kg)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="profile-height" id="profile-height-label"
+            >Height (in):</label
+          >
+          <input
+            type="number"
+            id="profile-height"
+            min="40"
+            max="250"
+            step="0.1"
+          />
+        </div>
+        <div class="form-group">
+          <label for="profile-weight" id="profile-weight-label"
+            >Current Weight (lbs):</label
+          >
+          <input
+            type="number"
+            id="profile-weight"
+            min="0"
+            max="500"
+            step="0.1"
+          />
+        </div>
+        <div class="form-group">
+          <label for="profile-weight-goal" id="profile-weight-goal-label"
+            >Weight Goal (lbs):</label
+          >
+          <input
+            type="number"
+            id="profile-weight-goal"
+            min="0"
+            max="500"
+            step="0.1"
+          />
+        </div>
+        <div class="form-group">
+          <label for="profile-bmi">BMI:</label>
+          <input
+            type="text"
+            id="profile-bmi"
+            readonly
+            style="background: #f8f9fa"
+          />
+        </div>
+        <button id="save-profile-btn" class="btn-primary" type="button" style="margin-top: 12px;">Save Profile</button>
+      </form>
+      <hr style="margin: 30px 0" />
+      <h3>Weekly Weight Tracker</h3>
+      <canvas
+        id="weight-chart"
+        width="600"
+        height="220"
+        style="margin-bottom: 24px"
+      ></canvas>
+      <form id="weight-form" style="margin-bottom: 18px">
+        <label for="weight-date">Date:</label>
+        <input type="date" id="weight-date" required />
+        <label for="weight-value" id="weight-value-label">Weight (lbs):</label>
+        <input
+          type="number"
+          id="weight-value"
+          min="30"
+          max="500"
+          step="0.1"
+          required
+        />
+        <button type="submit" class="btn-primary" style="margin-left: 8px">
+          Add
+        </button>
+      </form>
+      <table id="weight-history" style="width: 100%; border-collapse: collapse">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th id="weight-history-header">Weight (lbs)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <!-- Firebase SDKs and config (replace with your config) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script>
+      // Replace with your Firebase config
+      const firebaseConfig = {
+        apiKey: "AIzaSyA5jh85C5XGxwWOlRPaeJfIlhMBjcZNjX0",
+        authDomain: "training-plan-6a049.firebaseapp.com",
+        projectId: "training-plan-6a049",
+        storageBucket: "training-plan-6a049.firebasestorage.app",
+        messagingSenderId: "1091941787317",
+        appId: "1:1091941787317:web:18090eac2af0e526d940fc",
+        measurementId: "G-16XQDD1GRT",
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+    </script>
+    <script src="main.js"></script>
+    <script>
+      // BMI and weight tracker logic for profile page
+      document.addEventListener("DOMContentLoaded", function () {
+        const heightInput = document.getElementById("profile-height");
+        const weightInput = document.getElementById("profile-weight");
+        const weightGoalInput = document.getElementById("profile-weight-goal");
+        const bmiInput = document.getElementById("profile-bmi");
+        const unitToggle = document.getElementById("unit-toggle");
+        const heightLabel = document.getElementById("profile-height-label");
+        const weightLabel = document.getElementById("profile-weight-label");
+        const weightGoalLabel = document.getElementById("profile-weight-goal-label");
+        let bmiCategoryLabel = document.getElementById("bmi-category-label");
+        if (!bmiCategoryLabel && bmiInput) {
+          bmiCategoryLabel = document.createElement("div");
+          bmiCategoryLabel.id = "bmi-category-label";
+          bmiInput.parentElement.appendChild(bmiCategoryLabel);
+        }
+        let currentUnit = localStorage.getItem("profile-unit") || "imperial";
+        if (unitToggle) unitToggle.value = currentUnit;
+        function getBMICategory(bmi) {
+          if (bmi < 18.5) return "Below recommended";
+          if (bmi < 25) return "Recommended range";
+          if (bmi < 30) return "Above recommended";
+          return "Well above recommended";
+        }
+        function toMetric(h, w) {
+          return [h * 2.54, w * 0.453592];
+        }
+        function toImperial(h, w) {
+          return [h / 2.54, w / 0.453592];
+        }
+        function updateLabels(unit) {
+          if (heightLabel)
+            heightLabel.textContent =
+              unit === "metric" ? "Height (cm):" : "Height (in):";
+          if (weightLabel)
+            weightLabel.textContent =
+              unit === "metric"
+                ? "Current Weight (kg):"
+                : "Current Weight (lbs):";
+          if (weightGoalLabel)
+            weightGoalLabel.textContent = `Weight Goal (${unit === "metric" ? "kg" : "lbs"}):`;
+          const weightValueLabel =
+            document.getElementById("weight-value-label");
+          const weightHistoryHeader = document.getElementById(
+            "weight-history-header"
+          );
+          if (weightValueLabel)
+            weightValueLabel.textContent = `Weight (${
+              unit === "metric" ? "kg" : "lbs"
+            }):`;
+          if (weightHistoryHeader)
+            weightHistoryHeader.textContent = `Weight (${
+              unit === "metric" ? "kg" : "lbs"
+            })`;
+        }
+        function updateBMI() {
+          let h = parseFloat(heightInput.value);
+          let w = parseFloat(weightInput.value);
+          if (h > 0 && w > 0) {
+            if (currentUnit === "imperial") {
+              [h, w] = toMetric(h, w);
+            }
+            const bmi = w / (h / 100) ** 2;
+            bmiInput.value = bmi.toFixed(1);
+            if (bmiCategoryLabel) {
+              bmiCategoryLabel.textContent = `(${getBMICategory(bmi)})`;
+              bmiCategoryLabel.style.fontSize = "0.95em";
+              bmiCategoryLabel.style.color = "#764ba2";
+              bmiCategoryLabel.style.marginTop = "4px";
+            }
+          } else {
+            bmiInput.value = "";
+            if (bmiCategoryLabel) bmiCategoryLabel.textContent = "";
+          }
+        }
+        function convertProfileFields(newUnit) {
+          let h = parseFloat(heightInput.value);
+          let w = parseFloat(weightInput.value);
+          let wg = parseFloat(weightGoalInput.value);
+          if (h > 0 && w > 0) {
+            if (newUnit === "metric" && currentUnit === "imperial") {
+              [h, w] = toMetric(h, w);
+            } else if (newUnit === "imperial" && currentUnit === "metric") {
+              [h, w] = toImperial(h, w);
+            }
+            heightInput.value = h ? h.toFixed(1) : "";
+            weightInput.value = w ? w.toFixed(1) : "";
+            weightGoalInput.value = wg ? wg.toFixed(1) : "";
+          }
+        }
+        if (unitToggle && heightInput && weightInput && bmiInput) {
+          unitToggle.onchange = function () {
+            const newUnit = unitToggle.value;
+            if (newUnit !== currentUnit) {
+              convertProfileFields(newUnit);
+              updateLabels(newUnit);
+              currentUnit = newUnit;
+              localStorage.setItem("profile-unit", currentUnit);
+              updateBMI();
+              renderWeightHistory();
+            }
+          };
+          updateLabels(currentUnit);
+        }
+        if (heightInput && weightInput && bmiInput) {
+          heightInput.oninput = updateBMI;
+          weightInput.oninput = updateBMI;
+        }
+        // Weight tracker
+        const weightForm = document.getElementById("weight-form");
+        const weightDate = document.getElementById("weight-date");
+        const weightValue = document.getElementById("weight-value");
+        const weightHistory = document
+          .getElementById("weight-history")
+          .querySelector("tbody");
+        let weights = JSON.parse(
+          localStorage.getItem("weight-history") || "[]"
+        );
+        function renderWeightHistory() {
+          weightHistory.innerHTML = "";
+          weights.sort((a, b) => new Date(a.date) - new Date(b.date));
+          const chartLabels = [];
+          const chartData = [];
+          let startingWeight = weights.length ? Number(weights[0].weight) : null;
+          let weightGoal = weightGoalInput && weightGoalInput.value ? Number(weightGoalInput.value) : null;
+          let yMin = null, yMax = null;
+          for (const entry of weights) {
+            let displayWeight = entry.weight;
+            if (currentUnit === "imperial" && entry.unit === "metric") {
+              displayWeight = (entry.weight / 0.453592).toFixed(1);
+            } else if (currentUnit === "metric" && entry.unit === "imperial") {
+              displayWeight = (entry.weight * 0.453592).toFixed(1);
+            }
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${entry.date}</td><td>${displayWeight}</td>`;
+            weightHistory.appendChild(tr);
+            chartLabels.push(entry.date);
+            chartData.push(Number(displayWeight));
+          }
+          // Determine y-axis min/max to include starting weight and goal
+          if (chartData.length) {
+            yMin = Math.min(...chartData);
+            yMax = Math.max(...chartData);
+            if (startingWeight !== null) {
+              yMin = Math.min(yMin, startingWeight);
+              yMax = Math.max(yMax, startingWeight);
+            }
+            if (weightGoal !== null && weightGoal !== 0) {
+              yMin = Math.min(yMin, weightGoal);
+              yMax = Math.max(yMax, weightGoal);
+            }
+            // Add padding
+            yMin = Math.floor(yMin - 2);
+            yMax = Math.ceil(yMax + 2);
+          }
+          // Draw chart
+          if (window.weightChart) window.weightChart.destroy();
+          const ctx = document.getElementById("weight-chart").getContext("2d");
+          window.weightChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: chartLabels,
+              datasets: [
+                {
+                  label: "Weight",
+                  data: chartData,
+                  borderColor: "#764ba2",
+                  backgroundColor: "rgba(118,75,162,0.1)",
+                  tension: 0.2,
+                  pointRadius: 4,
+                  pointBackgroundColor: "#764ba2",
+                  fill: true,
+                },
+                // Starting weight line
+                startingWeight !== null ? {
+                  label: "Starting Weight",
+                  data: Array(chartLabels.length).fill(startingWeight),
+                  borderColor: "#2196f3",
+                  borderDash: [6, 6],
+                  pointRadius: 0,
+                  fill: false,
+                  type: "line",
+                  order: 0,
+                } : null,
+                // Weight goal line
+                weightGoal !== null && weightGoal !== 0 ? {
+                  label: "Weight Goal",
+                  data: Array(chartLabels.length).fill(weightGoal),
+                  borderColor: "#43a047",
+                  borderDash: [4, 4],
+                  pointRadius: 0,
+                  fill: false,
+                  type: "line",
+                  order: 0,
+                } : null,
+              ].filter(Boolean),
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: true },
+                title: { display: false },
+              },
+              scales: {
+                x: { title: { display: true, text: "Date" } },
+                y: {
+                  title: {
+                    display: true,
+                    text: `Weight (${currentUnit === "metric" ? "kg" : "lbs"})`,
+                  },
+                  min: yMin,
+                  max: yMax,
+                },
+              },
+            },
+          });
+          if (weights.length && weightInput) {
+            let latest = weights[0];
+            let w = latest.weight;
+            if (currentUnit === "imperial" && latest.unit === "metric") {
+              w = (w / 0.453592).toFixed(1);
+            } else if (currentUnit === "metric" && latest.unit === "imperial") {
+              w = (w * 0.453592).toFixed(1);
+            }
+            weightInput.value = w;
+            updateBMI();
+          }
+        }
+        if (weightForm && weightDate && weightValue) {
+          weightForm.onsubmit = (e) => {
+            e.preventDefault();
+            const date = weightDate.value;
+            let weight = parseFloat(weightValue.value);
+            if (date && weight > 0) {
+              weights = weights.filter((w) => w.date !== date);
+              weights.push({ date, weight, unit: currentUnit });
+              localStorage.setItem("weight-history", JSON.stringify(weights));
+              renderWeightHistory();
+              weightForm.reset();
+            }
+          };
+          renderWeightHistory();
+        }
+        updateLabels(currentUnit);
+        updateBMI();
+        // --- Firebase Auth UI logic ---
+        const emailInput = document.getElementById("auth-email");
+        const passInput = document.getElementById("auth-password");
+        const loginBtn = document.getElementById("login-btn");
+        const signupBtn = document.getElementById("signup-btn");
+        const logoutBtn = document.getElementById("logout-btn");
+        const authMsg = document.getElementById("auth-message");
+        const profileSection = document.getElementById("profile");
+        function showProfile(show) {
+          profileSection.style.display = show ? "" : "none";
+        }
+        loginBtn.onclick = async () => {
+          try {
+            await auth.signInWithEmailAndPassword(
+              emailInput.value,
+              passInput.value
+            );
+            authMsg.textContent = "Logged in!";
+          } catch (e) {
+            authMsg.textContent = e.message;
+          }
+        };
+        signupBtn.onclick = async () => {
+          try {
+            await auth.createUserWithEmailAndPassword(
+              emailInput.value,
+              passInput.value
+            );
+            authMsg.textContent = "Account created!";
+          } catch (e) {
+            authMsg.textContent = e.message;
+          }
+        };
+        logoutBtn.onclick = async () => {
+          await auth.signOut();
+          authMsg.textContent = "Logged out!";
+        };
+        // --- Firestore save/load helpers ---
+        async function saveProfileData(profile) {
+          const user = auth.currentUser;
+          if (!user) return;
+          await db
+            .collection("users")
+            .doc(user.uid)
+            .set({ profile }, { merge: true });
+        }
+        async function loadProfileData() {
+          const user = auth.currentUser;
+          if (!user) return null;
+          const doc = await db.collection("users").doc(user.uid).get();
+          return doc.exists ? doc.data().profile : null;
+        }
+        async function saveWeightHistory(weightHistory) {
+          const user = auth.currentUser;
+          if (!user) return;
+          await db
+            .collection("users")
+            .doc(user.uid)
+            .set({ weightHistory }, { merge: true });
+        }
+        async function loadWeightHistory() {
+          const user = auth.currentUser;
+          if (!user) return [];
+          const doc = await db.collection("users").doc(user.uid).get();
+          return doc.exists && doc.data().weightHistory
+            ? doc.data().weightHistory
+            : [];
+        }
+        // --- Update UI and sync with Firestore on auth state ---
+        auth.onAuthStateChanged(async (user) => {
+          if (user) {
+            logoutBtn.style.display = "";
+            loginBtn.style.display = signupBtn.style.display = "none";
+            showProfile(true);
+            // Load profile and weight history from Firestore
+            const profile = await loadProfileData();
+            if (profile) {
+              if (unitToggle) unitToggle.value = profile.unit || "imperial";
+              if (heightInput) heightInput.value = profile.height || "";
+              if (weightInput) weightInput.value = profile.weight || "";
+              if (weightGoalInput) weightGoalInput.value = profile.weightGoal || "";
+              currentUnit = profile.unit || "imperial";
+              updateLabels(currentUnit);
+              updateBMI();
+            }
+            weights = await loadWeightHistory();
+            renderWeightHistory();
+          } else {
+            logoutBtn.style.display = "none";
+            loginBtn.style.display = signupBtn.style.display = "";
+            showProfile(false);
+          }
+        });
+        // --- Save profile to Firestore on change ---
+        function saveProfileToFirestore() {
+          saveProfileData({
+            height: heightInput.value,
+            weight: weightInput.value,
+            weightGoal: weightGoalInput.value,
+            unit: currentUnit,
+          });
+        }
+        const saveProfileBtn = document.getElementById("save-profile-btn");
+        if (saveProfileBtn) {
+          saveProfileBtn.addEventListener("click", saveProfileToFirestore);
+        }
+        // Remove auto-save on field change for profile fields
+        if (heightInput && weightInput && unitToggle && weightGoalInput) {
+          heightInput.removeEventListener && heightInput.removeEventListener("change", saveProfileToFirestore);
+          weightInput.removeEventListener && weightInput.removeEventListener("change", saveProfileToFirestore);
+          weightGoalInput.removeEventListener && weightGoalInput.removeEventListener("change", saveProfileToFirestore);
+          unitToggle.removeEventListener && unitToggle.removeEventListener("change", saveProfileToFirestore);
+        }
+        // --- Save weight history to Firestore on add ---
+        if (weightForm && weightDate && weightValue) {
+          weightForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const date = weightDate.value;
+            let weight = parseFloat(weightValue.value);
+            if (date && weight > 0) {
+              weights = weights.filter((w) => w.date !== date);
+              weights.push({ date, weight, unit: currentUnit });
+              await saveWeightHistory(weights);
+              renderWeightHistory();
+              weightForm.reset();
+            }
+          };
+        }
+      });
+    </script>
+    <!-- Chart.js CDN for line graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </body>
+</html>
