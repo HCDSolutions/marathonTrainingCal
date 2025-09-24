@@ -5,8 +5,12 @@ class MarathonTrainingCalendar {
     this.workouts = {};
     this.completedDays = [];
 
-    // Marathon date - November 15th (Richmond Marathon)
-    this.marathonDate = new Date(2025, 10, 15); // Month is 0-indexed, so 10 = November
+    // Race configuration
+    this.raceConfig = {
+      type: 'marathon', // 'marathon' or 'half-marathon'
+      date: null,
+      name: ''
+    };
 
     this.init();
   }
@@ -30,6 +34,7 @@ class MarathonTrainingCalendar {
     this.setupMobileDayView();
     this.setupProfileInfo();
     this.setupAutoPopulate();
+    this.setupRaceConfiguration();
   }
 
   setupEventListeners() {
@@ -731,80 +736,146 @@ class MarathonTrainingCalendar {
   }
 
   generateTrainingPlan() {
+    if (!this.raceConfig.date) {
+      alert('Please configure your race first!');
+      return;
+    }
+
     // Clear existing workouts first
     this.workouts = {};
     
-    // Create a smart weekly training plan
-    const weeklyPlans = [
-      // Week 1 pattern
-      ['zone2', 'vo2max', 'easy', 'steadystate', 'strides', 'longruns', 'rest'],
-      // Week 2 pattern  
-      ['easy', 'hillsprints', 'zone2', 'progressive', 'strength', 'longruns', 'rest'],
-      // Week 3 pattern
-      ['zone2', 'steadystate', 'easy', 'vo2max', 'strides', 'progressive', 'rest'],
-      // Week 4 pattern (recovery week)
-      ['easy', 'zone2', 'easy', 'steadystate', 'easy', 'longruns', 'rest']
-    ];
+    const today = new Date();
+    const raceDate = new Date(this.raceConfig.date);
     
-    const start = new Date();
-    const end = new Date(this.marathonDate);
-    let d = new Date(start);
+    // Check if race is in the future
+    if (raceDate <= today) {
+      alert('Race date must be in the future!');
+      return;
+    }
+
+    // Determine if we're in simple or complex mode
+    const isSimpleMode = !document.getElementById('mode-toggle').checked;
+    
+    // Get workout types based on mode
+    const workoutTypes = this.getWorkoutTypesByMode(isSimpleMode);
+    
+    // Generate weekly patterns
+    const weeklyPatterns = this.generateWeeklyPatterns(workoutTypes, isSimpleMode);
+    
+    let currentDate = new Date(today);
     let weekCount = 0;
     
-    while (d <= end) {
-      const dateKey = this.getDateKey(d);
-      const dayOfWeek = d.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    while (currentDate < raceDate) {
+      const dateKey = this.getDateKey(currentDate);
+      const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
       
-      // Skip marathon day
-      if (dateKey !== this.getDateKey(this.marathonDate)) {
-        const weekPlan = weeklyPlans[weekCount % weeklyPlans.length];
-        const workoutType = weekPlan[dayOfWeek];
-        
-        this.workouts[dateKey] = {
-          type: workoutType,
-          distance: this.getDefaultDistance(workoutType),
-          pace: this.getDefaultPace(workoutType),
-          duration: this.getDefaultDuration(workoutType),
-          heartRate: this.getDefaultHeartRate(workoutType),
-          calories: this.getDefaultCalories(workoutType),
-          notes: this.getDefaultNotes(workoutType),
-        };
-      }
+      // Get the weekly pattern (cycle through patterns)
+      const weekPattern = weeklyPatterns[weekCount % weeklyPatterns.length];
+      const workoutType = weekPattern[dayOfWeek];
+      
+      this.workouts[dateKey] = {
+        type: workoutType,
+        distance: this.getDefaultDistance(workoutType, this.raceConfig.type),
+        pace: this.getDefaultPace(workoutType),
+        duration: this.getDefaultDuration(workoutType),
+        heartRate: this.getDefaultHeartRate(workoutType),
+        calories: this.getDefaultCalories(workoutType),
+        notes: this.getDefaultNotes(workoutType),
+      };
       
       // Move to next day and check if we completed a week
-      d.setDate(d.getDate() + 1);
-      if (d.getDay() === 1) { // Monday - new week
+      currentDate.setDate(currentDate.getDate() + 1);
+      if (currentDate.getDay() === 1) { // Monday - new week
         weekCount++;
       }
     }
     
-    // Set the marathon day workout
-    const marathonDateKey = this.getDateKey(this.marathonDate);
-    this.workouts[marathonDateKey] = {
-      type: "marathon",
-      distance: "26.2 miles",
+    // Set the race day workout
+    const raceDateKey = this.getDateKey(raceDate);
+    const raceDistance = this.raceConfig.type === 'marathon' ? '26.2 miles' : '13.1 miles';
+    const raceType = this.raceConfig.type === 'marathon' ? 'marathon' : 'half-marathon';
+    const raceName = this.raceConfig.name || (this.raceConfig.type === 'marathon' ? 'Marathon' : 'Half Marathon');
+    
+    this.workouts[raceDateKey] = {
+      type: raceType,
+      distance: raceDistance,
       pace: "Race pace",
-      duration: "3-5 hours",
+      duration: this.raceConfig.type === 'marathon' ? "3-5 hours" : "1.5-3 hours",
       heartRate: "Zone 4 (80-90% max)",
-      calories: "2000-3000",
-      notes: "🏃‍♂️ RICHMOND MARATHON DAY! Good luck and have fun! Remember to pace yourself and enjoy the experience.",
+      calories: this.raceConfig.type === 'marathon' ? "2000-3000" : "1000-1500",
+      notes: `� ${raceName.toUpperCase()} DAY! Good luck and have fun! Remember to pace yourself and enjoy the experience.`,
     };
     
     this.saveWorkouts();
   }
+
+  getWorkoutTypesByMode(isSimpleMode) {
+    if (isSimpleMode) {
+      return {
+        easy: 'easy',
+        long: 'longruns',
+        strength: 'strength',
+        rest: 'rest',
+        moderate: 'zone2'
+      };
+    } else {
+      return {
+        easy: 'easy',
+        zone2: 'zone2',
+        vo2max: 'vo2max',
+        steadystate: 'steadystate',
+        progressive: 'progressive',
+        strides: 'strides',
+        hillsprints: 'hillsprints',
+        longruns: 'longruns',
+        strength: 'strength',
+        rest: 'rest'
+      };
+    }
+  }
+
+  generateWeeklyPatterns(workoutTypes, isSimpleMode) {
+    if (isSimpleMode) {
+      return [
+        // Simple Week 1: [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+        [workoutTypes.long, workoutTypes.rest, workoutTypes.easy, workoutTypes.moderate, workoutTypes.easy, workoutTypes.strength, workoutTypes.easy],
+        // Simple Week 2
+        [workoutTypes.long, workoutTypes.easy, workoutTypes.rest, workoutTypes.moderate, workoutTypes.strength, workoutTypes.easy, workoutTypes.moderate],
+        // Simple Week 3
+        [workoutTypes.long, workoutTypes.moderate, workoutTypes.easy, workoutTypes.rest, workoutTypes.easy, workoutTypes.moderate, workoutTypes.strength],
+        // Simple Week 4 (Recovery)
+        [workoutTypes.long, workoutTypes.rest, workoutTypes.easy, workoutTypes.easy, workoutTypes.easy, workoutTypes.strength, workoutTypes.easy]
+      ];
+    } else {
+      return [
+        // Complex Week 1: [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+        [workoutTypes.longruns, workoutTypes.rest, workoutTypes.zone2, workoutTypes.vo2max, workoutTypes.easy, workoutTypes.strength, workoutTypes.steadystate],
+        // Complex Week 2
+        [workoutTypes.progressive, workoutTypes.easy, workoutTypes.rest, workoutTypes.hillsprints, workoutTypes.zone2, workoutTypes.strength, workoutTypes.strides],
+        // Complex Week 3
+        [workoutTypes.longruns, workoutTypes.steadystate, workoutTypes.zone2, workoutTypes.rest, workoutTypes.vo2max, workoutTypes.easy, workoutTypes.strength],
+        // Complex Week 4 (Recovery)
+        [workoutTypes.longruns, workoutTypes.rest, workoutTypes.easy, workoutTypes.zone2, workoutTypes.easy, workoutTypes.strength, workoutTypes.easy]
+      ];
+    }
+  }
   
-  getDefaultDistance(type) {
+  getDefaultDistance(type, raceType = 'marathon') {
+    const isHalfMarathon = raceType === 'half-marathon';
+    
     const distances = {
-      'vo2max': '4-6 miles',
-      'steadystate': '6-8 miles', 
-      'progressive': '8-12 miles',
+      'vo2max': isHalfMarathon ? '3-5 miles' : '4-6 miles',
+      'steadystate': isHalfMarathon ? '4-6 miles' : '6-8 miles', 
+      'progressive': isHalfMarathon ? '6-10 miles' : '8-12 miles',
       'strides': '3-4 miles',
       'hillsprints': '3-5 miles',
-      'longruns': '10-16 miles',
-      'zone2': '5-8 miles',
+      'longruns': isHalfMarathon ? '8-12 miles' : '10-16 miles',
+      'zone2': isHalfMarathon ? '4-6 miles' : '5-8 miles',
       'strength': 'N/A',
       'easy': '3-6 miles',
-      'rest': 'N/A'
+      'rest': 'N/A',
+      'half-marathon': '13.1 miles',
+      'marathon': '26.2 miles'
     };
     return distances[type] || '';
   }
@@ -895,12 +966,23 @@ class MarathonTrainingCalendar {
     
     if (autoPopulateBtn) {
       autoPopulateBtn.onclick = async () => {
-        if (confirm('This will replace all existing workouts with a smart training plan. Continue?')) {
+        if (!this.raceConfig.date) {
+          alert('Please configure your race first!');
+          return;
+        }
+        
+        const raceTypeText = this.raceConfig.type === 'marathon' ? 'marathon' : 'half marathon';
+        const raceName = this.raceConfig.name || raceTypeText;
+        const weeksUntilRace = Math.ceil((this.raceConfig.date - new Date()) / (7 * 24 * 60 * 60 * 1000));
+        
+        if (confirm(`This will replace all existing workouts with a ${weeksUntilRace}-week training plan for your ${raceName}. Continue?`)) {
           this.generateTrainingPlan();
           await this.saveWorkouts(); // Ensure data is saved to Firebase
           this.renderCalendar();
           this.renderTrainingSummary();
-          alert('Training plan generated! Each week includes long runs, rest days, and varied workouts.');
+          
+          const modeText = document.getElementById('mode-toggle').checked ? 'complex' : 'simple';
+          alert(`${weeksUntilRace}-week ${modeText} training plan generated! Each week includes long runs, rest days, strength training, and varied workouts.`);
         }
       };
     }
@@ -918,6 +1000,176 @@ class MarathonTrainingCalendar {
         }
       };
     }
+  }
+
+  setupRaceConfiguration() {
+    const raceConfigSection = document.getElementById('race-config-section');
+    const saveRaceConfigBtn = document.getElementById('save-race-config');
+    const raceTypeSelect = document.getElementById('race-type');
+    const raceDateInput = document.getElementById('race-date');
+    const raceNameInput = document.getElementById('race-name');
+    const autoPopulateBtn = document.getElementById('auto-populate-btn');
+    const populateInstructions = document.getElementById('populate-instructions');
+
+    // Load saved race config
+    this.loadRaceConfig();
+
+    saveRaceConfigBtn.onclick = () => {
+      const raceDate = new Date(raceDateInput.value);
+      const today = new Date();
+      
+      if (!raceDateInput.value) {
+        alert('Please select a race date');
+        return;
+      }
+      
+      if (raceDate <= today) {
+        alert('Race date must be in the future');
+        return;
+      }
+
+      this.raceConfig = {
+        type: raceTypeSelect.value,
+        date: raceDate,
+        name: raceNameInput.value || ''
+      };
+
+      this.saveRaceConfig();
+      this.updateRaceDisplay();
+      this.updateAutoPopulateButton();
+      
+      alert('Race configuration saved! You can now generate your training plan.');
+    };
+
+    // Update display when inputs change
+    [raceTypeSelect, raceDateInput, raceNameInput].forEach(input => {
+      input.addEventListener('change', () => {
+        if (raceDateInput.value) {
+          this.updateRaceDisplay(true); // preview mode
+        }
+      });
+    });
+  }
+
+  updateRaceDisplay(preview = false) {
+    const raceDisplay = document.getElementById('race-display');
+    const raceTypeSelect = document.getElementById('race-type');
+    const raceDateInput = document.getElementById('race-date');
+    const raceNameInput = document.getElementById('race-name');
+
+    let config = this.raceConfig;
+    if (preview && raceDateInput.value) {
+      config = {
+        type: raceTypeSelect.value,
+        date: new Date(raceDateInput.value),
+        name: raceNameInput.value || ''
+      };
+    }
+
+    if (!config.date) {
+      raceDisplay.textContent = 'No race configured';
+      raceDisplay.style.color = '#999';
+      return;
+    }
+
+    const raceTypeText = config.type === 'marathon' ? 'Full Marathon (26.2 miles)' : 'Half Marathon (13.1 miles)';
+    const raceDateText = config.date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    const raceName = config.name ? `${config.name} - ` : '';
+    raceDisplay.innerHTML = `🏁 ${raceName}${raceTypeText}<br>📅 ${raceDateText}`;
+    raceDisplay.style.color = '#667eea';
+  }
+
+  updateAutoPopulateButton() {
+    const autoPopulateBtn = document.getElementById('auto-populate-btn');
+    const populateInstructions = document.getElementById('populate-instructions');
+
+    if (this.raceConfig.date) {
+      autoPopulateBtn.disabled = false;
+      autoPopulateBtn.style.opacity = '1';
+      autoPopulateBtn.style.cursor = 'pointer';
+      
+      const weeksUntilRace = Math.ceil((this.raceConfig.date - new Date()) / (7 * 24 * 60 * 60 * 1000));
+      populateInstructions.textContent = `Generate a ${weeksUntilRace}-week training plan for your ${this.raceConfig.type === 'marathon' ? 'marathon' : 'half marathon'}`;
+    } else {
+      autoPopulateBtn.disabled = true;
+      autoPopulateBtn.style.opacity = '0.5';
+      autoPopulateBtn.style.cursor = 'not-allowed';
+      populateInstructions.textContent = 'Please configure your race first to generate a training plan';
+    }
+  }
+
+  async saveRaceConfig() {
+    const raceConfigData = {
+      ...this.raceConfig,
+      date: this.raceConfig.date ? this.raceConfig.date.toISOString() : null
+    };
+    
+    localStorage.setItem("marathon-race-config", JSON.stringify(raceConfigData));
+    
+    // Also save to Firebase if logged in
+    const user = firebase.auth().currentUser;
+    if (user) {
+      try {
+        await firebase.firestore().collection('users').doc(user.uid).set({
+          raceConfig: raceConfigData
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error saving race config to Firebase:', error);
+      }
+    }
+  }
+
+  async loadRaceConfig() {
+    const user = firebase.auth().currentUser;
+    
+    if (user) {
+      // Load from Firebase if logged in
+      try {
+        const doc = await firebase.firestore().collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.raceConfig) {
+            this.raceConfig = {
+              ...data.raceConfig,
+              date: data.raceConfig.date ? new Date(data.raceConfig.date) : null
+            };
+            this.populateRaceConfigForm();
+            this.updateRaceDisplay();
+            this.updateAutoPopulateButton();
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading race config from Firebase:', error);
+      }
+    }
+    
+    // Fallback to localStorage
+    const saved = localStorage.getItem("marathon-race-config");
+    if (saved) {
+      const config = JSON.parse(saved);
+      this.raceConfig = {
+        ...config,
+        date: config.date ? new Date(config.date) : null
+      };
+      this.populateRaceConfigForm();
+      this.updateRaceDisplay();
+      this.updateAutoPopulateButton();
+    }
+  }
+
+  populateRaceConfigForm() {
+    document.getElementById('race-type').value = this.raceConfig.type;
+    if (this.raceConfig.date) {
+      document.getElementById('race-date').value = this.raceConfig.date.toISOString().split('T')[0];
+    }
+    document.getElementById('race-name').value = this.raceConfig.name || '';
   }
 
   renderTrainingSummary() {
@@ -1004,11 +1256,20 @@ class MarathonTrainingCalendar {
     const user = firebase.auth().currentUser;
     if (user) {
       try {
-        await firebase.firestore().collection('users').doc(user.uid).set({
+        const dataToSave = {
           workouts: this.workouts,
-          completedDays: this.completedDays,
-          marathonDate: this.marathonDate.toISOString()
-        }, { merge: true });
+          completedDays: this.completedDays
+        };
+        
+        // Include race config if it exists
+        if (this.raceConfig.date) {
+          dataToSave.raceConfig = {
+            ...this.raceConfig,
+            date: this.raceConfig.date.toISOString()
+          };
+        }
+        
+        await firebase.firestore().collection('users').doc(user.uid).set(dataToSave, { merge: true });
       } catch (error) {
         console.error('Error saving to Firebase:', error);
       }
@@ -1117,19 +1378,25 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('user-info').style.display = 'block';
       document.getElementById('user-email').textContent = user.email;
+      
+      // Show race configuration section
+      document.getElementById('race-config-section').style.display = 'block';
+      
       showProfile(true);
       authMsg.textContent = 'Logged in!';
       
       // Reload calendar data from Firebase
       if (window.marathonCalendar) {
         await window.marathonCalendar.loadWorkouts();
+        await window.marathonCalendar.loadRaceConfig();
         window.marathonCalendar.renderCalendar();
         window.marathonCalendar.renderTrainingSummary();
       }
     } else {
-      // Show login form and hide user info
+      // Show login form and hide user info and race config
       document.getElementById('login-form').style.display = 'block';
       document.getElementById('user-info').style.display = 'none';
+      document.getElementById('race-config-section').style.display = 'none';
       showProfile(false);
     }
   });
