@@ -30,11 +30,16 @@
   <body>
     <nav class="navbar">
       <div id="auth-section" style="margin: 30px 0">
-        <input type="email" id="auth-email" placeholder="Email" />
-        <input type="password" id="auth-password" placeholder="Password" />
-        <button id="login-btn">Login</button>
-        <button id="signup-btn">Sign Up</button>
-        <button id="logout-btn" style="display: none">Logout</button>
+        <div id="login-form">
+          <input type="email" id="auth-email" placeholder="Email" />
+          <input type="password" id="auth-password" placeholder="Password" />
+          <button id="login-btn">Login</button>
+          <button id="signup-btn">Sign Up</button>
+        </div>
+        <div id="user-info" style="display: none;">
+          <span id="user-email" style="color: #667eea; font-weight: 600; margin-right: 15px;"></span>
+          <button id="logout-btn">Logout</button>
+        </div>
         <div id="auth-message"></div>
       </div>
       <ul>

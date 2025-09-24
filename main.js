@@ -2,17 +2,25 @@ class MarathonTrainingCalendar {
   constructor() {
     this.currentDate = new Date();
     this.selectedDate = null;
-    this.workouts = this.loadWorkouts();
-    this.completedDays = this.loadCompletedDays();
+    this.workouts = {};
+    this.completedDays = [];
 
     // Marathon date - November 15th (Richmond Marathon)
     this.marathonDate = new Date(2025, 10, 15); // Month is 0-indexed, so 10 = November
 
     this.init();
-    this.generateTrainingPlan();
   }
 
-  init() {
+  async init() {
+    // Load data first
+    this.workouts = await this.loadWorkouts();
+    this.completedDays = this.loadCompletedDays();
+    
+    // If no workouts exist, generate training plan
+    if (Object.keys(this.workouts).length === 0) {
+      this.generateTrainingPlan();
+    }
+    
     this.renderCalendar();
     this.setupEventListeners();
     this.renderTrainingSummary();
@@ -41,16 +49,16 @@ class MarathonTrainingCalendar {
       this.closeModal();
     });
 
-    document.getElementById("save-workout").addEventListener("click", () => {
-      this.saveWorkout();
+    document.getElementById("save-workout").addEventListener("click", async () => {
+      await this.saveWorkout();
     });
 
-    document.getElementById("mark-complete").addEventListener("click", () => {
-      this.toggleComplete();
+    document.getElementById("mark-complete").addEventListener("click", async () => {
+      await this.toggleComplete();
     });
 
-    document.getElementById("delete-workout").addEventListener("click", () => {
-      this.deleteWorkout();
+    document.getElementById("delete-workout").addEventListener("click", async () => {
+      await this.deleteWorkout();
     });
 
     // Close modal when clicking outside
@@ -654,7 +662,7 @@ class MarathonTrainingCalendar {
     this.selectedDate = null;
   }
 
-  saveWorkout() {
+  async saveWorkout() {
     if (!this.selectedDate) return;
 
     const dateKey = this.getDateKey(this.selectedDate);
@@ -672,13 +680,13 @@ class MarathonTrainingCalendar {
       delete this.workouts[dateKey];
     }
 
-    this.saveWorkouts();
+    await this.saveWorkouts();
     this.renderCalendar();
     this.renderTrainingSummary();
     this.closeModal();
   }
 
-  toggleComplete() {
+  async toggleComplete() {
     if (!this.selectedDate) return;
 
     const dateKey = this.getDateKey(this.selectedDate);
@@ -690,7 +698,7 @@ class MarathonTrainingCalendar {
       this.completedDays.push(dateKey);
     }
 
-    this.saveCompletedDays();
+    await this.saveCompletedDays();
     this.renderCalendar();
     this.renderTrainingSummary();
 
@@ -703,7 +711,7 @@ class MarathonTrainingCalendar {
     completeBtn.className = isCompleted ? "btn-danger" : "btn-success";
   }
 
-  deleteWorkout() {
+  async deleteWorkout() {
     if (!this.selectedDate) return;
 
     const dateKey = this.getDateKey(this.selectedDate);
@@ -715,8 +723,8 @@ class MarathonTrainingCalendar {
       this.completedDays.splice(index, 1);
     }
 
-    this.saveWorkouts();
-    this.saveCompletedDays();
+    await this.saveWorkouts();
+    await this.saveCompletedDays();
     this.renderCalendar();
     this.renderTrainingSummary();
     this.closeModal();
@@ -886,9 +894,10 @@ class MarathonTrainingCalendar {
     const clearWorkoutsBtn = document.getElementById('clear-workouts-btn');
     
     if (autoPopulateBtn) {
-      autoPopulateBtn.onclick = () => {
+      autoPopulateBtn.onclick = async () => {
         if (confirm('This will replace all existing workouts with a smart training plan. Continue?')) {
           this.generateTrainingPlan();
+          await this.saveWorkouts(); // Ensure data is saved to Firebase
           this.renderCalendar();
           this.renderTrainingSummary();
           alert('Training plan generated! Each week includes long runs, rest days, and varied workouts.');
@@ -897,12 +906,12 @@ class MarathonTrainingCalendar {
     }
     
     if (clearWorkoutsBtn) {
-      clearWorkoutsBtn.onclick = () => {
+      clearWorkoutsBtn.onclick = async () => {
         if (confirm('This will delete all workouts. Are you sure?')) {
           this.workouts = {};
           this.completedDays = [];
-          this.saveWorkouts();
-          this.saveCompletedDays();
+          await this.saveWorkouts();
+          await this.saveCompletedDays();
           this.renderCalendar();
           this.renderTrainingSummary();
           alert('All workouts cleared!');
@@ -987,20 +996,72 @@ class MarathonTrainingCalendar {
     return months[monthIndex];
   }
 
-  saveWorkouts() {
+  async saveWorkouts() {
+    // Save to localStorage for immediate access
     localStorage.setItem("marathon-workouts", JSON.stringify(this.workouts));
+    
+    // If user is logged in, also save to Firebase
+    const user = firebase.auth().currentUser;
+    if (user) {
+      try {
+        await firebase.firestore().collection('users').doc(user.uid).set({
+          workouts: this.workouts,
+          completedDays: this.completedDays,
+          marathonDate: this.marathonDate.toISOString()
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error saving to Firebase:', error);
+      }
+    }
   }
 
-  loadWorkouts() {
+  async loadWorkouts() {
+    const user = firebase.auth().currentUser;
+    
+    if (user) {
+      // Load from Firebase if logged in
+      try {
+        const doc = await firebase.firestore().collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.workouts) {
+            this.workouts = data.workouts;
+            if (data.completedDays) {
+              this.completedDays = data.completedDays;
+            }
+            if (data.marathonDate) {
+              this.marathonDate = new Date(data.marathonDate);
+            }
+            return this.workouts;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading from Firebase:', error);
+      }
+    }
+    
+    // Fallback to localStorage
     const saved = localStorage.getItem("marathon-workouts");
     return saved ? JSON.parse(saved) : {};
   }
 
-  saveCompletedDays() {
+  async saveCompletedDays() {
     localStorage.setItem(
       "marathon-completed",
       JSON.stringify(this.completedDays)
     );
+    
+    // Also save to Firebase if logged in
+    const user = firebase.auth().currentUser;
+    if (user) {
+      try {
+        await firebase.firestore().collection('users').doc(user.uid).set({
+          completedDays: this.completedDays
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error saving completed days to Firebase:', error);
+      }
+    }
   }
 
   loadCompletedDays() {
@@ -1011,7 +1072,7 @@ class MarathonTrainingCalendar {
 
 // Initialize the calendar when the page loads
 document.addEventListener("DOMContentLoaded", () => {
-  new MarathonTrainingCalendar();
+  window.marathonCalendar = new MarathonTrainingCalendar();
 });
 document.addEventListener('DOMContentLoaded', function () {
   const emailInput = document.getElementById('auth-email');
@@ -1045,17 +1106,30 @@ document.addEventListener('DOMContentLoaded', function () {
   logoutBtn.onclick = async () => {
     await auth.signOut();
     authMsg.textContent = 'Logged out!';
+    // Clear email and password fields when logging out
+    emailInput.value = '';
+    passInput.value = '';
   };
 
-  auth.onAuthStateChanged(user => {
+  auth.onAuthStateChanged(async (user) => {
     if (user) {
-      logoutBtn.style.display = '';
-      loginBtn.style.display = signupBtn.style.display = 'none';
+      // Hide login form and show user info
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('user-info').style.display = 'block';
+      document.getElementById('user-email').textContent = user.email;
       showProfile(true);
-      // Load user data here
+      authMsg.textContent = 'Logged in!';
+      
+      // Reload calendar data from Firebase
+      if (window.marathonCalendar) {
+        await window.marathonCalendar.loadWorkouts();
+        window.marathonCalendar.renderCalendar();
+        window.marathonCalendar.renderTrainingSummary();
+      }
     } else {
-      logoutBtn.style.display = 'none';
-      loginBtn.style.display = signupBtn.style.display = '';
+      // Show login form and hide user info
+      document.getElementById('login-form').style.display = 'block';
+      document.getElementById('user-info').style.display = 'none';
       showProfile(false);
     }
   });

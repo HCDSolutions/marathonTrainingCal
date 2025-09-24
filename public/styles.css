@@ -430,6 +430,20 @@ button {
   font-style: italic;
 }
 
+/* User info styling */
+#user-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+#user-email {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 14px;
+}
+
 /* Training Plan Summary */
 .training-summary {
   background: white;
