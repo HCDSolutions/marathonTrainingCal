@@ -19,33 +19,7 @@ h1, h2, h3, h4, h5, h6 {
 #calendar {
   background: #fff;
   border-radius: 15px;
-  box-shadow: .btn-secondary {
-  background: #667eea !important;
-  color: #fff !important;
-}
-
-.btn-secondary:hover {
-  background: #5a6fd8;
-  transform: translateY(-2px);
-}
-
-/* Auto-populate section */
-.auto-populate-section {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  margin-bottom: 20px;
-}
-
-.auto-populate-section button {
-  min-width: 180px;
-}
-
-.auto-populate-section p {
-  margin: 10px 0 0 0;
-  font-style: italic;
-}x rgba(0,0,0,0.07);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.07);
 }
 
 .calendar-header {
@@ -423,6 +397,22 @@ button {
 }
 
 /* Auto-populate section */
+.auto-populate-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.auto-populate-section button {
+  min-width: 180px;
+}
+
+.auto-populate-section p {
+  margin: 10px 0 0 0;
+  font-style: italic;
+}
 .auto-populate-section {
   background: white;
   border-radius: 12px;
