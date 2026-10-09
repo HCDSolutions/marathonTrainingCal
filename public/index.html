@@ -1,30 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Marathon Training Calendar</title>
     <link rel="stylesheet" href="styles.css" />
-    <!-- Firebase App (core) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <!-- Auth and Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <!-- Firebase temporarily disabled for local-only mode -->
     <script>
-      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-      const firebaseConfig = {
-        apiKey: "AIzaSyA5jh85C5XGxwWOlRPaeJfIlhMBjcZNjX0",
-        authDomain: "training-plan-6a049.firebaseapp.com",
-        projectId: "training-plan-6a049",
-        storageBucket: "training-plan-6a049.firebasestorage.app",
-        messagingSenderId: "1091941787317",
-        appId: "1:1091941787317:web:18090eac2af0e526d940fc",
-        measurementId: "G-16XQDD1GRT",
-      };
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const db = firebase.firestore();
+      window.FIREBASE_DISABLED = true;
     </script>
   </head>
   <body>
@@ -36,8 +19,11 @@
           <button id="login-btn">Login</button>
           <button id="signup-btn">Sign Up</button>
         </div>
-        <div id="user-info" style="display: none;">
-          <span id="user-email" style="color: #667eea; font-weight: 600; margin-right: 15px;"></span>
+        <div id="user-info" style="display: none">
+          <span
+            id="user-email"
+            style="color: #667eea; font-weight: 600; margin-right: 15px"
+          ></span>
           <button id="logout-btn">Logout</button>
         </div>
         <div id="auth-message"></div>
@@ -66,44 +52,98 @@
       </div>
     </nav>
     <h1>Marathon Training Calendar</h1>
-    
+
     <!-- Race Configuration Section -->
-    <div id="race-config-section" style="display: none; background: #f8f9ff; padding: 20px; margin: 20px 0; border-radius: 8px; border: 2px solid #667eea;">
-      <h3 style="margin-top: 0; color: #667eea;">🏃‍♂️ Configure Your Race</h3>
-      <div style="display: flex; gap: 20px; align-items: end; justify-content: center; flex-wrap: wrap;">
-        <div class="form-group" style="margin: 0;">
+    <div
+      id="race-config-section"
+      style="
+        display: none;
+        background: #f8f9ff;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 2px solid #667eea;
+      "
+    >
+      <h3 style="margin-top: 0; color: #667eea">🏃‍♂️ Configure Your Race</h3>
+      <div
+        style="
+          display: flex;
+          gap: 20px;
+          align-items: end;
+          justify-content: center;
+          flex-wrap: wrap;
+        "
+      >
+        <div class="form-group" style="margin: 0">
           <label for="race-type">Race Type:</label>
-          <select id="race-type" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+          <select
+            id="race-type"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc"
+          >
             <option value="marathon">Full Marathon (26.2 miles)</option>
             <option value="half-marathon">Half Marathon (13.1 miles)</option>
           </select>
         </div>
-        <div class="form-group" style="margin: 0;">
+        <div class="form-group" style="margin: 0">
           <label for="race-date">Race Date:</label>
-          <input type="date" id="race-date" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;" />
+          <input
+            type="date"
+            id="race-date"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc"
+          />
         </div>
-        <div class="form-group" style="margin: 0;">
+        <div class="form-group" style="margin: 0">
           <label for="race-name">Race Name (optional):</label>
-          <input type="text" id="race-name" placeholder="e.g., Richmond Marathon" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;" />
+          <input
+            type="text"
+            id="race-name"
+            placeholder="e.g., Richmond Marathon"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc"
+          />
         </div>
-        <button id="save-race-config" class="btn-primary" style="height: fit-content;">
+        <button
+          id="save-race-config"
+          class="btn-primary"
+          style="height: fit-content"
+        >
           💾 Save Race Config
         </button>
       </div>
-      <div id="race-info" style="margin-top: 15px; padding: 10px; background: white; border-radius: 4px; text-align: center; font-weight: 600;">
+      <div
+        id="race-info"
+        style="
+          margin-top: 15px;
+          padding: 10px;
+          background: white;
+          border-radius: 4px;
+          text-align: center;
+          font-weight: 600;
+        "
+      >
         <span id="race-display">No race configured</span>
       </div>
     </div>
 
-    <div class="auto-populate-section" style="text-align: center; margin: 20px 0;">
-      <button id="auto-populate-btn" class="btn-primary" style="margin-right: 10px;" disabled>
+    <div
+      class="auto-populate-section"
+      style="text-align: center; margin: 20px 0"
+    >
+      <button
+        id="auto-populate-btn"
+        class="btn-primary"
+        style="margin-right: 10px"
+        disabled
+      >
         📅 Auto-Populate Training Plan
       </button>
       <button id="clear-workouts-btn" class="btn-secondary">
         🗑️ Clear All Workouts
       </button>
-      <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
-        <span id="populate-instructions">Please configure your race first to generate a training plan</span>
+      <p style="font-size: 0.9em; color: #666; margin-top: 10px">
+        <span id="populate-instructions"
+          >Please configure your race first to generate a training plan</span
+        >
       </p>
     </div>
     <div id="calendar"></div>
@@ -178,7 +218,9 @@
             <option value="Zone 2 (60-70% max)">Zone 2 (60-70% max HR)</option>
             <option value="Zone 3 (70-80% max)">Zone 3 (70-80% max HR)</option>
             <option value="Zone 4 (80-90% max)">Zone 4 (80-90% max HR)</option>
-            <option value="Zone 5 (90-100% max)">Zone 5 (90-100% max HR)</option>
+            <option value="Zone 5 (90-100% max)">
+              Zone 5 (90-100% max HR)
+            </option>
           </select>
         </div>
 
@@ -219,7 +261,8 @@
         <h2>Workout Type Descriptions</h2>
         <ul class="workout-type-list">
           <li>
-            <b>Easy Run:</b> Relaxed, comfortable pace for active recovery and building aerobic base.
+            <b>Easy Run:</b> Relaxed, comfortable pace for active recovery and
+            building aerobic base.
           </li>
           <li>
             <b>VO2 Max:</b> Short, high-intensity intervals to improve aerobic
@@ -265,7 +308,16 @@
         </ul>
       </div>
     </div>
-    <footer style="text-align: center; padding: 20px; margin-top: 40px; border-top: 1px solid #e0e0e0; color: #666; font-size: 0.9em;">
+    <footer
+      style="
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+        border-top: 1px solid #e0e0e0;
+        color: #666;
+        font-size: 0.9em;
+      "
+    >
       Human-Centered Design Solutions
     </footer>
     <script src="main.js"></script>

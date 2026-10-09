@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -19,6 +19,19 @@
       </ul>
     </nav>
     <section id="profile" style="margin: 40px auto; max-width: 600px">
+      <div
+        style="
+          margin-bottom: 18px;
+          padding: 12px 16px;
+          border-left: 4px solid #f59e0b;
+          background: #fff7ed;
+          color: #92400e;
+          border-radius: 8px;
+          font-weight: 600;
+        "
+      >
+        This is only a prototype. Profile information does not save.
+      </div>
       <h2>Profile Information</h2>
       <form id="profile-form" autocomplete="off">
         <div class="form-group">
@@ -73,7 +86,14 @@
             style="background: #f8f9fa"
           />
         </div>
-        <button id="save-profile-btn" class="btn-primary" type="button" style="margin-top: 12px;">Save Profile</button>
+        <button
+          id="save-profile-btn"
+          class="btn-primary"
+          type="button"
+          style="margin-top: 12px"
+        >
+          Save Profile
+        </button>
       </form>
       <hr style="margin: 30px 0" />
       <h3>Weekly Weight Tracker</h3>
@@ -109,24 +129,9 @@
         <tbody></tbody>
       </table>
     </section>
-    <!-- Firebase SDKs and config (replace with your config) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <!-- Firebase temporarily disabled for local-only mode -->
     <script>
-      // Replace with your Firebase config
-      const firebaseConfig = {
-        apiKey: "AIzaSyA5jh85C5XGxwWOlRPaeJfIlhMBjcZNjX0",
-        authDomain: "training-plan-6a049.firebaseapp.com",
-        projectId: "training-plan-6a049",
-        storageBucket: "training-plan-6a049.firebasestorage.app",
-        messagingSenderId: "1091941787317",
-        appId: "1:1091941787317:web:18090eac2af0e526d940fc",
-        measurementId: "G-16XQDD1GRT",
-      };
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const db = firebase.firestore();
+      window.FIREBASE_DISABLED = true;
     </script>
     <script src="main.js"></script>
     <script>
@@ -139,7 +144,9 @@
         const unitToggle = document.getElementById("unit-toggle");
         const heightLabel = document.getElementById("profile-height-label");
         const weightLabel = document.getElementById("profile-weight-label");
-        const weightGoalLabel = document.getElementById("profile-weight-goal-label");
+        const weightGoalLabel = document.getElementById(
+          "profile-weight-goal-label",
+        );
         let bmiCategoryLabel = document.getElementById("bmi-category-label");
         if (!bmiCategoryLabel && bmiInput) {
           bmiCategoryLabel = document.createElement("div");
@@ -174,7 +181,7 @@
           const weightValueLabel =
             document.getElementById("weight-value-label");
           const weightHistoryHeader = document.getElementById(
-            "weight-history-header"
+            "weight-history-header",
           );
           if (weightValueLabel)
             weightValueLabel.textContent = `Weight (${
@@ -246,16 +253,22 @@
           .getElementById("weight-history")
           .querySelector("tbody");
         let weights = JSON.parse(
-          localStorage.getItem("weight-history") || "[]"
+          localStorage.getItem("weight-history") || "[]",
         );
         function renderWeightHistory() {
           weightHistory.innerHTML = "";
           weights.sort((a, b) => new Date(a.date) - new Date(b.date));
           const chartLabels = [];
           const chartData = [];
-          let startingWeight = weights.length ? Number(weights[0].weight) : null;
-          let weightGoal = weightGoalInput && weightGoalInput.value ? Number(weightGoalInput.value) : null;
-          let yMin = null, yMax = null;
+          let startingWeight = weights.length
+            ? Number(weights[0].weight)
+            : null;
+          let weightGoal =
+            weightGoalInput && weightGoalInput.value
+              ? Number(weightGoalInput.value)
+              : null;
+          let yMin = null,
+            yMax = null;
           for (const entry of weights) {
             let displayWeight = entry.weight;
             if (currentUnit === "imperial" && entry.unit === "metric") {
@@ -304,27 +317,31 @@
                   fill: true,
                 },
                 // Starting weight line
-                startingWeight !== null ? {
-                  label: "Starting Weight",
-                  data: Array(chartLabels.length).fill(startingWeight),
-                  borderColor: "#2196f3",
-                  borderDash: [6, 6],
-                  pointRadius: 0,
-                  fill: false,
-                  type: "line",
-                  order: 0,
-                } : null,
+                startingWeight !== null
+                  ? {
+                      label: "Starting Weight",
+                      data: Array(chartLabels.length).fill(startingWeight),
+                      borderColor: "#2196f3",
+                      borderDash: [6, 6],
+                      pointRadius: 0,
+                      fill: false,
+                      type: "line",
+                      order: 0,
+                    }
+                  : null,
                 // Weight goal line
-                weightGoal !== null && weightGoal !== 0 ? {
-                  label: "Weight Goal",
-                  data: Array(chartLabels.length).fill(weightGoal),
-                  borderColor: "#43a047",
-                  borderDash: [4, 4],
-                  pointRadius: 0,
-                  fill: false,
-                  type: "line",
-                  order: 0,
-                } : null,
+                weightGoal !== null && weightGoal !== 0
+                  ? {
+                      label: "Weight Goal",
+                      data: Array(chartLabels.length).fill(weightGoal),
+                      borderColor: "#43a047",
+                      borderDash: [4, 4],
+                      pointRadius: 0,
+                      fill: false,
+                      type: "line",
+                      order: 0,
+                    }
+                  : null,
               ].filter(Boolean),
             },
             options: {
@@ -383,14 +400,35 @@
         const logoutBtn = document.getElementById("logout-btn");
         const authMsg = document.getElementById("auth-message");
         const profileSection = document.getElementById("profile");
+        const auth =
+          window.firebase && typeof window.firebase.auth === "function"
+            ? window.firebase.auth()
+            : null;
+        const db =
+          window.firebase && typeof window.firebase.firestore === "function"
+            ? window.firebase.firestore()
+            : null;
+
         function showProfile(show) {
-          profileSection.style.display = show ? "" : "none";
+          if (profileSection) profileSection.style.display = show ? "" : "none";
         }
+
+        if (!auth || !db) {
+          if (authMsg)
+            authMsg.textContent =
+              "Firebase is temporarily disabled. Local-only mode is active.";
+          if (logoutBtn) logoutBtn.style.display = "none";
+          if (loginBtn) loginBtn.style.display = "none";
+          if (signupBtn) signupBtn.style.display = "none";
+          if (profileSection) profileSection.style.display = "";
+          return;
+        }
+
         loginBtn.onclick = async () => {
           try {
             await auth.signInWithEmailAndPassword(
               emailInput.value,
-              passInput.value
+              passInput.value,
             );
             authMsg.textContent = "Logged in!";
           } catch (e) {
@@ -401,7 +439,7 @@
           try {
             await auth.createUserWithEmailAndPassword(
               emailInput.value,
-              passInput.value
+              passInput.value,
             );
             authMsg.textContent = "Account created!";
           } catch (e) {
@@ -449,13 +487,13 @@
             logoutBtn.style.display = "";
             loginBtn.style.display = signupBtn.style.display = "none";
             showProfile(true);
-            // Load profile and weight history from Firestore
             const profile = await loadProfileData();
             if (profile) {
               if (unitToggle) unitToggle.value = profile.unit || "imperial";
               if (heightInput) heightInput.value = profile.height || "";
               if (weightInput) weightInput.value = profile.weight || "";
-              if (weightGoalInput) weightGoalInput.value = profile.weightGoal || "";
+              if (weightGoalInput)
+                weightGoalInput.value = profile.weightGoal || "";
               currentUnit = profile.unit || "imperial";
               updateLabels(currentUnit);
               updateBMI();
@@ -483,10 +521,17 @@
         }
         // Remove auto-save on field change for profile fields
         if (heightInput && weightInput && unitToggle && weightGoalInput) {
-          heightInput.removeEventListener && heightInput.removeEventListener("change", saveProfileToFirestore);
-          weightInput.removeEventListener && weightInput.removeEventListener("change", saveProfileToFirestore);
-          weightGoalInput.removeEventListener && weightGoalInput.removeEventListener("change", saveProfileToFirestore);
-          unitToggle.removeEventListener && unitToggle.removeEventListener("change", saveProfileToFirestore);
+          heightInput.removeEventListener &&
+            heightInput.removeEventListener("change", saveProfileToFirestore);
+          weightInput.removeEventListener &&
+            weightInput.removeEventListener("change", saveProfileToFirestore);
+          weightGoalInput.removeEventListener &&
+            weightGoalInput.removeEventListener(
+              "change",
+              saveProfileToFirestore,
+            );
+          unitToggle.removeEventListener &&
+            unitToggle.removeEventListener("change", saveProfileToFirestore);
         }
         // --- Save weight history to Firestore on add ---
         if (weightForm && weightDate && weightValue) {
